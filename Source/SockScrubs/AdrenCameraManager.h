@@ -15,7 +15,7 @@ class SOCKSCRUBS_API AAdrenCameraManager : public APlayerCameraManager
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly)
-	float CrouchBlendDuration{.2f};
+	float CrouchBlendDuration{.1f};
 
 	float CrouchBlendTime{};
 
