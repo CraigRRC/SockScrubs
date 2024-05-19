@@ -47,11 +47,14 @@ void AAdrenCharacter::UpdateMovementState()
 	{
 	case Running:
 		MaxPlayerSpeed = 950.f;
+		PlayerMovementComp->GroundFriction = 8.f;
 		break;
 	case Crouching:
 		MaxPlayerSpeed = 300.f;
+		PlayerMovementComp->GroundFriction = 8.f;
 		break;
 	case Sliding:
+		PlayerMovementComp->GroundFriction = 0.f;
 		break;
 	case WallRunning:
 		break;
@@ -66,6 +69,48 @@ void AAdrenCharacter::UpdateMovementState()
 void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
+	if (MovementState == PlayerMovementState::Crouching && GetVelocity().SquaredLength() > 600000.f && PlayerMovementComp->IsMovingOnGround()) {
+		StartSlide();
+
+	}
+
+	if (MovementState == PlayerMovementState::Sliding) {
+		CalcFloorInfluence();
+		if (GetVelocity().SquaredLength() < 90000.f) {
+			StopCrouching();
+		}
+	}
+}
+
+void AAdrenCharacter::StartSlide()
+{
+	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
+	PlayerMovementComp->AddImpulse(SlideImpulse);
+	MovementState = PlayerMovementState::Sliding;
+	MovementStateDelegate.ExecuteIfBound();
+}
+
+void AAdrenCharacter::CalcFloorInfluence()
+{
+	FVector FirstCross = FVector::CrossProduct(PlayerMovementComp->CurrentFloor.HitResult.Normal, FVector::UpVector);
+	FVector DirectionToAddForce = FVector::CrossProduct(PlayerMovementComp->CurrentFloor.HitResult.Normal, FirstCross).GetSafeNormal();
+	if (FirstCross.IsNearlyZero()) {
+		DirectionToAddForce = FVector::Zero();
+	}
+	ClampSlideVelocity();
+	PlayerMovementComp->AddForce(DirectionToAddForce * DownhillForce);
+
+}
+
+void AAdrenCharacter::ClampSlideVelocity()
+{
+	if (GetVelocity().SquaredLength() > MaxSlideSpeed) {
+		DownhillForce = 0.f;
+	}
+	else {
+		DownhillForce = 400000.f;
+	}
 }
 
 // Called to bind functionality to input
@@ -78,8 +123,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AAdrenCharacter::Move);
 	Input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
 	Input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::Crouch);
-	//Input->BindAction(IA_Crouch, ETriggerEvent::Completed, this, &AAdrenCharacter::UnCrouch);
+	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -88,23 +132,28 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	AddControllerPitchInput(AxisValue2D.Y);
 }
 
-void AAdrenCharacter::Crouch(const FInputActionInstance& Instance)
+void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
 {
 	if (PlayerCapsule->GetScaledCapsuleHalfHeight() == CapsuleHalfHeight) {
-		MovementState = PlayerMovementState::Crouching;
-		MovementStateDelegate.ExecuteIfBound();
-		PlayerCapsule->SetCapsuleHalfHeight(CrouchedCapsuleHalfHeight);
+		BeginCrouch();
+		
 	}
 	else {
-		MovementState = PlayerMovementState::Running;
-		MovementStateDelegate.ExecuteIfBound();
-		PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
+		StopCrouching();
 	}
 }
 
-void AAdrenCharacter::UnCrouch(const FInputActionInstance& Instance)
+void AAdrenCharacter::BeginCrouch()
 {
-	
+	MovementState = PlayerMovementState::Crouching;
+	MovementStateDelegate.ExecuteIfBound();
+	PlayerCapsule->SetCapsuleHalfHeight(CrouchedCapsuleHalfHeight);
+}
+
+void AAdrenCharacter::StopCrouching(){
+	MovementState = PlayerMovementState::Running;
+	MovementStateDelegate.ExecuteIfBound();
+	PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
 }
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {

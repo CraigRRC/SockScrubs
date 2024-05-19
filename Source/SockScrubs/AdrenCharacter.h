@@ -21,6 +21,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -74,9 +76,24 @@ protected:
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
 
-	void Crouch(const struct FInputActionInstance& Instance);
+	UFUNCTION()
+	void WantsToCrouch(const struct FInputActionInstance& Instance);
 
-	void UnCrouch(const struct FInputActionInstance& Instance);
+	void BeginCrouch();
+
+	void StopCrouching();
+
+	void StartSlide();
+
+	void CalcFloorInfluence();
+
+	void ClampSlideVelocity();
+
+	float DownhillForce{ 400000.f };
+
+	float MaxSlideSpeed{ 10000000.f };
+
+	float SlideImpulseForce{ 300.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
