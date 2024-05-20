@@ -3,7 +3,6 @@
 
 #include "AdrenPlayerController.h"
 #include "EnhancedInputSubsystems.h"
-#include "InputMappingContext.h"
 
 void AAdrenPlayerController::BeginPlay()
 {
@@ -27,11 +26,8 @@ void AAdrenPlayerController::SwitchToDefaultMappingContext()
 void AAdrenPlayerController::SwitchToWeaponEquippedMappingContext(){
 	if (GetLocalPlayer()) {
 		UEnhancedInputLocalPlayerSubsystem* inputSubsystem = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-		if (inputSubsystem && IMC_WeaponEquipped && IMC_Default) {
-			if (inputSubsystem->HasMappingContext(IMC_Default)) {
-				inputSubsystem->RemoveMappingContext(IMC_Default);
-			}
-			inputSubsystem->AddMappingContext(IMC_WeaponEquipped, 0);
+		if (inputSubsystem && IMC_WeaponEquipped) {
+			inputSubsystem->AddMappingContext(IMC_WeaponEquipped, 1);
 			GEngine->AddOnScreenDebugMessage(3, 4.f, FColor::Black, "Here");
 			
 		}

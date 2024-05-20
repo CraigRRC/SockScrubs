@@ -155,7 +155,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
 	Input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
-	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::Shoot);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Ongoing, this, &AAdrenCharacter::Shoot);
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
