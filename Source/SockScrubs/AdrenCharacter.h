@@ -93,7 +93,7 @@ protected:
 
 	float MaxSlideSpeed{ 10000000.f };
 
-	float SlideImpulseForce{ 200.f };
+	float SlideImpulseForce{ 250.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
@@ -101,10 +101,16 @@ protected:
 
 
 	//Character Attributes
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class UCapsuleComponent* PlayerCapsule{};
 	float CapsuleHalfHeight{};
 	float CrouchedCapsuleHalfHeight{};
+
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	class UCameraComponent* PlayerCam{};*/
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	class USkeletalMeshComponent* PlayerMesh{};
 
 public:
 	FORCEINLINE float GetStandingCapsuleHalfHeight() { return CapsuleHalfHeight; }

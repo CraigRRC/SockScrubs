@@ -16,7 +16,7 @@ void AAdrenCameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 		FVector TargetCrouchOffset = FVector(0, 0, AdrenCharacter->GetCrouchingCapsuleHalfHeight() - AdrenCharacter->GetStandingCapsuleHalfHeight());
 		FVector Offset = FMath::Lerp(FVector::ZeroVector, TargetCrouchOffset, FMath::Clamp(CrouchBlendTime / CrouchBlendDuration, 0.f, 1.f));
 
-		if (AdrenCharacter->GetPlayerMovementState() == 1) {
+		if (AdrenCharacter->GetPlayerMovementState() >= 1) {
 			CrouchBlendTime = FMath::Clamp(CrouchBlendTime + DeltaTime, 0.f, CrouchBlendDuration);
 			Offset -= TargetCrouchOffset;
 		}

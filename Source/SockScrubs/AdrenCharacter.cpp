@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Camera/CameraComponent.h"
 
 
 enum PlayerMovementState {
@@ -25,6 +26,8 @@ AAdrenCharacter::AAdrenCharacter()
 	CapsuleHalfHeight = PlayerCapsule->GetScaledCapsuleHalfHeight();
 	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 2;
 	PlayerMovementComp = GetCharacterMovement();
+	PlayerMesh = GetMesh();
+	//PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
 }
 
 // Called when the game starts or when spawned
@@ -70,7 +73,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
-	if (MovementState == PlayerMovementState::Crouching && GetVelocity().SquaredLength() > 600000.f && PlayerMovementComp->IsMovingOnGround()) {
+	if (MovementState == PlayerMovementState::Crouching && GetVelocity().SquaredLength() > 400000.f && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
 	}
 

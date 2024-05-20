@@ -19,6 +19,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class USkeletalMeshComponent* TempGunMesh{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class UStaticMeshComponent* GunMesh{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class USphereComponent* StunCollider{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class USphereComponent* PickupCollider{};
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
