@@ -93,7 +93,7 @@ protected:
 
 	float MaxSlideSpeed{ 10000000.f };
 
-	float SlideImpulseForce{ 300.f };
+	float SlideImpulseForce{ 200.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);

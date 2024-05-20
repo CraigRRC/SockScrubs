@@ -50,7 +50,7 @@ void AAdrenCharacter::UpdateMovementState()
 		PlayerMovementComp->GroundFriction = 8.f;
 		break;
 	case Crouching:
-		MaxPlayerSpeed = 300.f;
+		MaxPlayerSpeed = 500.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		break;
 	case Sliding:
@@ -72,12 +72,12 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
 	if (MovementState == PlayerMovementState::Crouching && GetVelocity().SquaredLength() > 600000.f && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
-
 	}
 
 	if (MovementState == PlayerMovementState::Sliding) {
 		CalcFloorInfluence();
-		if (GetVelocity().SquaredLength() < 90000.f) {
+		//Check if the velocity is greater than our crouch max speed squared.
+		if (GetVelocity().SquaredLength() < 250000.f) {
 			StopCrouching();
 		}
 	}
@@ -158,8 +158,10 @@ void AAdrenCharacter::StopCrouching(){
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
-	AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
+	//Dont take any forward or backward input when sliding.
+	if (MovementState == PlayerMovementState::Sliding) return;
+	AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
 	
 }
 
