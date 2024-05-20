@@ -39,6 +39,8 @@ protected:
 
 public:	
 	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }
+	FORCEINLINE class USphereComponent* GetStunCollider() { return StunCollider; }
+	FORCEINLINE class USphereComponent* GetPickupCollider() { return PickupCollider; }
 
 	
 

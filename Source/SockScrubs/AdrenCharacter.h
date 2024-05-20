@@ -94,8 +94,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_StartRun{};
 
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class AAdrenPlayerController* AdrenPlayerController{};
+
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
+
+	UFUNCTION()
+	void Shoot(const struct FInputActionInstance& Instance);
 
 	UFUNCTION()
 	void WantsToCrouch(const struct FInputActionInstance& Instance);

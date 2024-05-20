@@ -6,8 +6,10 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "BaseWeapon.h"
+#include "AdrenPlayerController.h"
 
 
 
@@ -25,12 +27,14 @@ AAdrenCharacter::AAdrenCharacter()
 	PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
 	PlayerCam->SetupAttachment(RootComponent);
 	PlayerMesh->SetupAttachment(PlayerCam);
+	
 }
 
 // Called when the game starts or when spawned
 void AAdrenCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	AdrenPlayerController = CastChecked<AAdrenPlayerController>(GetLocalViewingPlayerController());
 	MovementStateDelegate.BindUObject(this, &AAdrenCharacter::UpdateMovementState);
 }
 
@@ -81,6 +85,8 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			StopCrouching();
 		}
 	}
+
+	
 }
 
 void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
@@ -95,6 +101,10 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 		case WeaponType::Rifle:
 			PlayerWeaponStatus = EPlayerWeaponState::HasRifle;
 			EquippedWeapon->GetGunMesh()->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, "GripPoint");
+			EquippedWeapon->GetGunMesh()->CastShadow = false;
+			EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			AdrenPlayerController->SwitchToWeaponEquippedMappingContext();
 			break;
 		default:
 			break;
@@ -145,12 +155,17 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
 	Input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::Shoot);
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddControllerYawInput(AxisValue2D.X);
 	AddControllerPitchInput(AxisValue2D.Y);
+}
+
+void AAdrenCharacter::Shoot(const FInputActionInstance& Instance) {
+	GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Cyan, "Pew");
 }
 
 void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
