@@ -24,6 +24,6 @@ void AAdrenCameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 			CrouchBlendTime = FMath::Clamp(CrouchBlendTime - DeltaTime, 0.f, CrouchBlendDuration);
 			Offset -= TargetCrouchOffset;
 		}
-		OutVT.POV.Location += Offset;
+		//OutVT.POV.Location += Offset;
 	}
 }

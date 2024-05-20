@@ -22,7 +22,9 @@ AAdrenCharacter::AAdrenCharacter()
 	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 2;
 	PlayerMovementComp = GetCharacterMovement();
 	PlayerMesh = GetMesh();
-	//PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
+	PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
+	PlayerCam->SetupAttachment(RootComponent);
+	PlayerMesh->SetupAttachment(PlayerCam);
 }
 
 // Called when the game starts or when spawned

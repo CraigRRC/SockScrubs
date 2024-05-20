@@ -129,8 +129,8 @@ protected:
 
 	class ABaseWeapon* EquippedWeapon {};
 
-	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
-	class UCameraComponent* PlayerCam{};*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	class UCameraComponent* PlayerCam{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class USkeletalMeshComponent* PlayerMesh{};
