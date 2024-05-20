@@ -4,13 +4,30 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "UPickupsInterface.h"
 #include "AdrenCharacter.generated.h"
 
 
 DECLARE_DELEGATE(MovementDelegate);
 
+enum EPlayerMovementState : uint8 {
+	Running,
+	Crouching,
+	Sliding,
+	WallRunning,
+};
+
+UENUM(Blueprintable)
+enum class EPlayerWeaponState : uint8 {
+	Unarmed UMETA(DisplayName = "Unarmed"),
+	HasRifle UMETA(DisplayName = "HasRifle"),
+	HasShotgun UMETA(DisplayName = "HasShotgun"),
+	HasPistol UMETA(DisplayName = "HasPistol"),
+	HasRockets UMETA(DisplayName = "HasRockets"),
+};
+
 UCLASS()
-class SOCKSCRUBS_API AAdrenCharacter : public ACharacter
+class SOCKSCRUBS_API AAdrenCharacter : public ACharacter, public IUPickupsInterface
 {
 	GENERATED_BODY()
 
@@ -21,7 +38,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+	UFUNCTION()
+	virtual void PickupWeapon(AActor* Weapon, WeaponType WeaponType) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -36,7 +54,10 @@ protected:
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
 
-	enum PlayerMovementState MovementState {};
+	enum EPlayerMovementState MovementState {};
+
+	UPROPERTY(BlueprintReadOnly, Category = Anims)
+	EPlayerWeaponState PlayerWeaponStatus{ EPlayerWeaponState::Unarmed };
 
 	float MaxPlayerSpeed{};
 
@@ -106,6 +127,8 @@ protected:
 	float CapsuleHalfHeight{};
 	float CrouchedCapsuleHalfHeight{};
 
+	class ABaseWeapon* EquippedWeapon {};
+
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class UCameraComponent* PlayerCam{};*/
 
@@ -115,5 +138,9 @@ protected:
 public:
 	FORCEINLINE float GetStandingCapsuleHalfHeight() { return CapsuleHalfHeight; }
 	FORCEINLINE float GetCrouchingCapsuleHalfHeight() { return CrouchedCapsuleHalfHeight; }
-	FORCEINLINE PlayerMovementState GetPlayerMovementState() { return MovementState; }
+	FORCEINLINE EPlayerMovementState GetPlayerMovementState() { return MovementState; }
 };
+
+
+
+

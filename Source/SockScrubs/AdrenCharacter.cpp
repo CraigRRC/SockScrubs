@@ -7,21 +7,16 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "BaseWeapon.h"
 
 
-enum PlayerMovementState {
-	Running,
-	Crouching,
-	Sliding,
-	WallRunning,
-};
 
 // Sets default values
 AAdrenCharacter::AAdrenCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	MovementState = PlayerMovementState::Running;
+	MovementState = EPlayerMovementState::Running;
 	PlayerCapsule = GetCapsuleComponent();
 	CapsuleHalfHeight = PlayerCapsule->GetScaledCapsuleHalfHeight();
 	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 2;
@@ -72,12 +67,12 @@ void AAdrenCharacter::UpdateMovementState()
 void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
-	if (MovementState == PlayerMovementState::Crouching && GetVelocity().SquaredLength() > 400000.f && PlayerMovementComp->IsMovingOnGround()) {
+	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
+	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > 400000.f && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
 	}
 
-	if (MovementState == PlayerMovementState::Sliding) {
+	if (MovementState == EPlayerMovementState::Sliding) {
 		CalcFloorInfluence();
 		//Check if the velocity is greater than our crouch max speed squared.
 		if (GetVelocity().SquaredLength() < 250000.f) {
@@ -86,11 +81,32 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 }
 
+void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
+{
+	if (EquippedWeapon) return;
+
+	if(Weapon != nullptr){
+		EquippedWeapon = Cast<ABaseWeapon>(Weapon);
+		
+		switch (WeaponType)
+		{
+		case WeaponType::Rifle:
+			PlayerWeaponStatus = EPlayerWeaponState::HasRifle;
+			EquippedWeapon->GetGunMesh()->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, "GripPoint");
+			break;
+		default:
+			break;
+		}
+	}
+
+	
+}
+
 void AAdrenCharacter::StartSlide()
 {
 	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
-	MovementState = PlayerMovementState::Sliding;
+	MovementState = EPlayerMovementState::Sliding;
 	MovementStateDelegate.ExecuteIfBound();
 }
 
@@ -148,13 +164,13 @@ void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
 
 void AAdrenCharacter::BeginCrouch()
 {
-	MovementState = PlayerMovementState::Crouching;
+	MovementState = EPlayerMovementState::Crouching;
 	MovementStateDelegate.ExecuteIfBound();
 	PlayerCapsule->SetCapsuleHalfHeight(CrouchedCapsuleHalfHeight);
 }
 
 void AAdrenCharacter::StopCrouching(){
-	MovementState = PlayerMovementState::Running;
+	MovementState = EPlayerMovementState::Running;
 	MovementStateDelegate.ExecuteIfBound();
 	PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
 }
@@ -163,7 +179,7 @@ void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
 	//Dont take any forward or backward input when sliding.
-	if (MovementState == PlayerMovementState::Sliding) return;
+	if (MovementState == EPlayerMovementState::Sliding) return;
 	AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
 	
 }

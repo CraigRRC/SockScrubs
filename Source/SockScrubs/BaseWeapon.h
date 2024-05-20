@@ -15,6 +15,9 @@ public:
 	// Sets default values for this actor's properties
 	ABaseWeapon();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -31,9 +34,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	class USphereComponent* PickupCollider{};
 
+	
+
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }
 
+	
+
+};
+
+UENUM(BlueprintType)
+enum class WeaponType : uint8 {
+	Rifle UMETA(DisplayName = "Rifle"),
 };
