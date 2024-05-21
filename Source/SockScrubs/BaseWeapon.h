@@ -41,6 +41,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void Fire(FVector Direction, FRotator Rotation);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -61,9 +64,6 @@ protected:
 	uint8 ClipSize{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
-	uint8 Ammo{};
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	float FireRate{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
@@ -73,6 +73,8 @@ public:
 	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }
 	FORCEINLINE class USphereComponent* GetStunCollider() { return StunCollider; }
 	FORCEINLINE class USphereComponent* GetPickupCollider() { return PickupCollider; }
+	FORCEINLINE uint8 GetClipSize() { return ClipSize; }
+	FORCEINLINE float GetFireRate() { return FireRate; }
 };
 
 

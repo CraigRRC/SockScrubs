@@ -5,6 +5,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "BaseProjectile.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -33,5 +34,10 @@ void ABaseWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ABaseWeapon::Fire(FVector Direction, FRotator Rotation){
+	auto test = GetWorld()->SpawnActor<AActor>(ProjectileToSpawn.Get(), Direction, Rotation);
+	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Blue, test->GetName());
 }
 

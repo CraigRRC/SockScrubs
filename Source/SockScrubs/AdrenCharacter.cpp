@@ -13,6 +13,7 @@
 
 
 
+
 // Sets default values
 AAdrenCharacter::AAdrenCharacter()
 {
@@ -104,6 +105,8 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 			EquippedWeapon->GetGunMesh()->CastShadow = false;
 			EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Ammo = EquippedWeapon->GetClipSize();
+			FullAutoTriggerCooldown = EquippedWeapon->GetFireRate();
 			AdrenPlayerController->SwitchToWeaponEquippedMappingContext();
 			break;
 		default:
@@ -155,7 +158,8 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
 	Input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
-	Input->BindAction(IA_Shoot, ETriggerEvent::Ongoing, this, &AAdrenCharacter::Shoot);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Ongoing, this, &AAdrenCharacter::ShootFullAuto);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::ShootFullAuto);
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -164,8 +168,18 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	AddControllerPitchInput(AxisValue2D.Y);
 }
 
-void AAdrenCharacter::Shoot(const FInputActionInstance& Instance) {
-	GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Cyan, "Pew");
+void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
+	if (!bCanFire) return;
+	EquippedWeapon->Fire(PlayerCam->GetForwardVector() * 100.f + PlayerCam->GetComponentLocation(), GetLocalViewingPlayerController()->GetControlRotation());
+	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
+	bCanFire = false;
+	
+	
+	
+}
+
+void AAdrenCharacter::ResetTrigger(){
+	bCanFire = true;
 }
 
 void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)

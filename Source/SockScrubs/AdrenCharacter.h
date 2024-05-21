@@ -100,8 +100,6 @@ protected:
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
 
-	UFUNCTION()
-	void Shoot(const struct FInputActionInstance& Instance);
 
 	UFUNCTION()
 	void WantsToCrouch(const struct FInputActionInstance& Instance);
@@ -125,7 +123,21 @@ protected:
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
 
+	
 
+	//GunProperties
+	uint8 Ammo{};
+
+	struct FTimerHandle WeaponHandle {};
+
+	UFUNCTION()
+	void ShootFullAuto(const struct FInputActionInstance& Instance);
+
+	void ResetTrigger();
+
+	float FullAutoTriggerCooldown{};
+
+	bool bCanFire{ true };
 
 	//Character Attributes
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
