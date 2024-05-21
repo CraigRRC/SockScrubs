@@ -15,7 +15,6 @@ ABaseWeapon::ABaseWeapon()
 	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProbablyRealMesh"));
 	StunCollider = CreateDefaultSubobject<USphereComponent>(TEXT("StunCollision"));
 	PickupCollider = CreateDefaultSubobject<USphereComponent>(TEXT("PickupCollision"));
-
 	SetRootComponent(TempGunMesh);
 	GunMesh->SetupAttachment(RootComponent);
 	StunCollider->SetupAttachment(RootComponent);
