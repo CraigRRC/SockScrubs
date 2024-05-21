@@ -110,6 +110,9 @@ protected:
 
 	void StartSlide();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Slide)
+	class UCameraShakeSourceComponent* SlideCameraShake{};
+
 	void CalcFloorInfluence();
 
 	void ClampSlideVelocity();
@@ -128,10 +131,23 @@ protected:
 	//GunProperties
 	uint8 Ammo{};
 
+	UPROPERTY(EditAnywhere, Category = Anims)
+	class UAnimMontage* FireMontage{};
+
+	float ProjectileForwardOffset{100.f};
+
 	struct FTimerHandle WeaponHandle {};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class UCameraShakeSourceComponent* FireCameraShake{};
 
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
+
+	UFUNCTION()
+	void FinishShootingFullAuto(const struct FInputActionInstance& Instance);
+
+	TObjectPtr<APlayerCameraManager> CamManager{};
 
 	void ResetTrigger();
 

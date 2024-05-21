@@ -69,12 +69,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	TSubclassOf<class ABaseProjectile> ProjectileToSpawn{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	USoundBase* GunSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	TSubclassOf<UCameraShakeBase> GunCameraShake{};
+	
+
+
+
 public:	
 	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }
 	FORCEINLINE class USphereComponent* GetStunCollider() { return StunCollider; }
 	FORCEINLINE class USphereComponent* GetPickupCollider() { return PickupCollider; }
 	FORCEINLINE uint8 GetClipSize() { return ClipSize; }
 	FORCEINLINE float GetFireRate() { return FireRate; }
+	FORCEINLINE TSubclassOf<class UCameraShakeBase> GetCameraShakeBase() { return GunCameraShake; }
 };
 
 

@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "BaseProjectile.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -38,6 +40,10 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 void ABaseWeapon::Fire(FVector Direction, FRotator Rotation){
 	auto test = GetWorld()->SpawnActor<AActor>(ProjectileToSpawn.Get(), Direction, Rotation);
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), GunSound, GetActorLocation());
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Blue, test->GetName());
+	
+	
+	
 }
 

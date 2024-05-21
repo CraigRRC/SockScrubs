@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "BaseWeapon.h"
 #include "AdrenPlayerController.h"
+#include "Camera/CameraShakeSourceComponent.h"
 
 
 
@@ -28,6 +29,8 @@ AAdrenCharacter::AAdrenCharacter()
 	PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
 	PlayerCam->SetupAttachment(RootComponent);
 	PlayerMesh->SetupAttachment(PlayerCam);
+	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
+	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
 	
 }
 
@@ -37,6 +40,7 @@ void AAdrenCharacter::BeginPlay()
 	Super::BeginPlay();
 	AdrenPlayerController = CastChecked<AAdrenPlayerController>(GetLocalViewingPlayerController());
 	MovementStateDelegate.BindUObject(this, &AAdrenCharacter::UpdateMovementState);
+	CamManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 }
 
 void AAdrenCharacter::Destroyed()
@@ -84,6 +88,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		//Check if the velocity is greater than our crouch max speed squared.
 		if (GetVelocity().SquaredLength() < 250000.f) {
 			StopCrouching();
+			CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
 		}
 	}
 
@@ -106,6 +111,8 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 			EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			Ammo = EquippedWeapon->GetClipSize();
+			FireCameraShake->CameraShake = EquippedWeapon->GetCameraShakeBase().Get();
+			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, EquippedWeapon->GetCameraShakeBase().Get()->GetName());
 			FullAutoTriggerCooldown = EquippedWeapon->GetFireRate();
 			AdrenPlayerController->SwitchToWeaponEquippedMappingContext();
 			break;
@@ -122,6 +129,7 @@ void AAdrenCharacter::StartSlide()
 	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
 	MovementState = EPlayerMovementState::Sliding;
+	CamManager->StartCameraShake(SlideCameraShake->CameraShake, 1.0f);
 	MovementStateDelegate.ExecuteIfBound();
 }
 
@@ -160,6 +168,8 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Ongoing, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::ShootFullAuto);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AAdrenCharacter::FinishShootingFullAuto);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &AAdrenCharacter::FinishShootingFullAuto);
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -170,7 +180,10 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	if (!bCanFire) return;
-	EquippedWeapon->Fire(PlayerCam->GetForwardVector() * 100.f + PlayerCam->GetComponentLocation(), GetLocalViewingPlayerController()->GetControlRotation());
+	EquippedWeapon->Fire(PlayerCam->GetForwardVector() * ProjectileForwardOffset + PlayerCam->GetComponentLocation(), GetLocalViewingPlayerController()->GetControlRotation());
+	PlayerMesh->GetAnimInstance()->Montage_Play(FireMontage);
+	CamManager->StartCameraShake(FireCameraShake->CameraShake, 1.0f);
+	Ammo--;
 	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
 	bCanFire = false;
 	
@@ -178,8 +191,18 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	
 }
 
+void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){
+	CamManager->StopAllCameraShakesFromSource(FireCameraShake, false);
+	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, TEXT("Hey"));
+}
+
 void AAdrenCharacter::ResetTrigger(){
+	
 	bCanFire = true;
+	if (Ammo == 0) {
+		bCanFire = false;
+		CamManager->StopAllCameraShakes(false);
+	}
 }
 
 void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
