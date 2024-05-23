@@ -42,7 +42,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void Fire(FVector Direction, FRotator Rotation);
+	void FireAsLineTrace(FVector Start, FVector End);
 
 protected:
 	// Called when the game starts or when spawned

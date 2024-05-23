@@ -180,7 +180,7 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	if (!bCanFire) return;
-	EquippedWeapon->Fire(PlayerCam->GetForwardVector() * ProjectileForwardOffset + PlayerCam->GetComponentLocation(), GetLocalViewingPlayerController()->GetControlRotation());
+	EquippedWeapon->FireAsLineTrace(PlayerCam->GetComponentLocation(), PlayerCam->GetComponentLocation() + PlayerCam->GetForwardVector() * 5000.f);
 	PlayerMesh->GetAnimInstance()->Montage_Play(FireMontage);
 	CamManager->StartCameraShake(FireCameraShake->CameraShake, 1.0f);
 	Ammo--;
