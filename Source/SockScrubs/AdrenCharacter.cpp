@@ -120,8 +120,6 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 			break;
 		}
 	}
-
-	
 }
 
 void AAdrenCharacter::StartSlide()
@@ -170,12 +168,27 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AAdrenCharacter::FinishShootingFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &AAdrenCharacter::FinishShootingFullAuto);
+	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddControllerYawInput(AxisValue2D.X);
 	AddControllerPitchInput(AxisValue2D.Y);
+}
+
+void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
+	if (EquippedWeapon == nullptr) return;
+	//Unsocket
+	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	//Switch mapping context back to default.
+	//Tell the anim instance that we don't have a weapon.
+	//Maybe move it to the front
+	//Simulate physics on it if not already simulating
+	//Add impulse to it
+	//Turn back on the stun collider
+	//Turn back on the pickup collider after a bit.
+	//Nullify EquippedWeapon after a bit.
 }
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
@@ -186,9 +199,7 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	Ammo--;
 	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
 	bCanFire = false;
-	
-	
-	
+
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){

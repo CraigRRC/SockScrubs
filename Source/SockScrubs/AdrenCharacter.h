@@ -100,6 +100,9 @@ protected:
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
 
+	UFUNCTION()
+	void Throw(const struct FInputActionInstance& Instance);
+
 
 	UFUNCTION()
 	void WantsToCrouch(const struct FInputActionInstance& Instance);
