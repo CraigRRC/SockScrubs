@@ -103,6 +103,8 @@ protected:
 	UFUNCTION()
 	void Throw(const struct FInputActionInstance& Instance);
 
+	void UnequipWeapon();
+
 
 	UFUNCTION()
 	void WantsToCrouch(const struct FInputActionInstance& Instance);

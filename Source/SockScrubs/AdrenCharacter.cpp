@@ -105,7 +105,9 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 		switch (WeaponType)
 		{
 		case WeaponType::Rifle:
+			bCanFire = true;
 			PlayerWeaponStatus = EPlayerWeaponState::HasRifle;
+			EquippedWeapon->GetGunMesh()->SetSimulatePhysics(false);
 			EquippedWeapon->GetGunMesh()->AttachToComponent(PlayerMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, "GripPoint");
 			EquippedWeapon->GetGunMesh()->CastShadow = false;
 			EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -181,18 +183,31 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	if (EquippedWeapon == nullptr) return;
 	//Unsocket
 	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	//Switch mapping context back to default.
-	//Tell the anim instance that we don't have a weapon.
-	//Maybe move it to the front
 	//Simulate physics on it if not already simulating
+	EquippedWeapon->GetGunMesh()->SetSimulatePhysics(true);
+	//Tell the anim instance that we don't have a weapon.
+	PlayerWeaponStatus = EPlayerWeaponState::Unarmed;
+	//Maybe move it to the front
+	//Switch mapping context back to default.
 	//Add impulse to it
+	FVector Throw = (PlayerCam->GetForwardVector() + PlayerCam->GetUpVector() * 0.1f) * 3000.f;
+	EquippedWeapon->GetGunMesh()->AddImpulse(Throw, NAME_None, true);
 	//Turn back on the stun collider
+	EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	//Turn back on the pickup collider after a bit.
 	//Nullify EquippedWeapon after a bit.
+	CamManager->StopAllCameraShakes(true);
+	FTimerHandle UnequipTimerHandle{};
+	GetWorldTimerManager().SetTimer(UnequipTimerHandle, this, &AAdrenCharacter::UnequipWeapon, 1.f, false);
+}
+
+void AAdrenCharacter::UnequipWeapon(){
+	EquippedWeapon = nullptr;
 }
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
-	if (!bCanFire) return;
+	if (!bCanFire || PlayerWeaponStatus == EPlayerWeaponState::Unarmed) return;
 	EquippedWeapon->FireAsLineTrace(PlayerCam->GetComponentLocation(), PlayerCam->GetComponentLocation() + PlayerCam->GetForwardVector() * 5000.f);
 	PlayerMesh->GetAnimInstance()->Montage_Play(FireMontage);
 	CamManager->StartCameraShake(FireCameraShake->CameraShake, 1.0f);
@@ -203,7 +218,7 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){
-	CamManager->StopAllCameraShakesFromSource(FireCameraShake, false);
+	CamManager->StopAllCameraShakes(false);
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, TEXT("Hey"));
 }
 
