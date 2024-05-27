@@ -61,13 +61,16 @@ void AAdrenCharacter::UpdateMovementState()
 	case Running:
 		MaxPlayerSpeed = 950.f;
 		PlayerMovementComp->GroundFriction = 8.f;
+		StopKicking();
 		break;
 	case Crouching:
 		MaxPlayerSpeed = 500.f;
 		PlayerMovementComp->GroundFriction = 8.f;
+		StopKicking();
 		break;
 	case Sliding:
 		PlayerMovementComp->GroundFriction = 0.f;
+		EnableKickHitbox();
 		break;
 	case WallRunning:
 		break;
@@ -89,6 +92,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (MovementState == EPlayerMovementState::Sliding) {
 		CalcFloorInfluence();
+		
 		//Check if the velocity is greater than our crouch max speed squared.
 		if (GetVelocity().SquaredLength() < 250000.f) {
 			StopCrouching();
