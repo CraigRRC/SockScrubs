@@ -11,6 +11,7 @@
 #include "BaseWeapon.h"
 #include "AdrenPlayerController.h"
 #include "Camera/CameraShakeSourceComponent.h"
+#include "Components/BoxComponent.h"
 
 
 
@@ -29,6 +30,9 @@ AAdrenCharacter::AAdrenCharacter()
 	PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
 	PlayerCam->SetupAttachment(RootComponent);
 	PlayerMesh->SetupAttachment(PlayerCam);
+	KickHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("TempKickHitbox"));
+	KickHitbox->SetupAttachment(PlayerCam);
+	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
 	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
 	
@@ -171,6 +175,9 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AAdrenCharacter::FinishShootingFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &AAdrenCharacter::FinishShootingFullAuto);
 	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
+	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
+
+	
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -208,13 +215,29 @@ void AAdrenCharacter::UnequipWeapon(){
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	if (!bCanFire || PlayerWeaponStatus == EPlayerWeaponState::Unarmed) return;
-	EquippedWeapon->FireAsLineTrace(PlayerCam->GetComponentLocation(), PlayerCam->GetComponentLocation() + PlayerCam->GetForwardVector() * 5000.f);
+	EquippedWeapon->FireAsLineTrace(PlayerCam->GetComponentLocation(), PlayerCam->GetComponentLocation() + PlayerCam->GetForwardVector() * 10000.f);
 	PlayerMesh->GetAnimInstance()->Montage_Play(FireMontage);
 	CamManager->StartCameraShake(FireCameraShake->CameraShake, 1.0f);
 	Ammo--;
 	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
 	bCanFire = false;
 
+}
+
+void AAdrenCharacter::Kick(const FInputActionInstance& Instance){
+	EnableKickHitbox();
+	FTimerHandle StopKicking{};
+	GetWorldTimerManager().SetTimer(StopKicking, this, &AAdrenCharacter::StopKicking, 0.2f, false);
+}
+
+void AAdrenCharacter::EnableKickHitbox(){
+	KickHitbox->bHiddenInGame = false;
+	KickHitbox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AAdrenCharacter::StopKicking(){
+	KickHitbox->bHiddenInGame = true;
+	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){

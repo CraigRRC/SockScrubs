@@ -150,6 +150,13 @@ protected:
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
 
 	UFUNCTION()
+	void Kick(const struct FInputActionInstance& Instance);
+
+	void EnableKickHitbox();
+
+	void StopKicking();
+
+	UFUNCTION()
 	void FinishShootingFullAuto(const struct FInputActionInstance& Instance);
 
 	TObjectPtr<APlayerCameraManager> CamManager{};
@@ -170,6 +177,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class UCameraComponent* PlayerCam{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	class UBoxComponent* KickHitbox{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class USkeletalMeshComponent* PlayerMesh{};
