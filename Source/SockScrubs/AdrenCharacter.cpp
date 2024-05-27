@@ -199,7 +199,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	//Nullify EquippedWeapon after a bit.
 	CamManager->StopAllCameraShakes(true);
 	FTimerHandle UnequipTimerHandle{};
-	GetWorldTimerManager().SetTimer(UnequipTimerHandle, this, &AAdrenCharacter::UnequipWeapon, 1.f, false);
+	GetWorldTimerManager().SetTimer(UnequipTimerHandle, this, &AAdrenCharacter::UnequipWeapon, 0.2f, false);
 }
 
 void AAdrenCharacter::UnequipWeapon(){
