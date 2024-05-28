@@ -7,6 +7,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SceneComponent.h"
+#include "AdrenCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
@@ -33,14 +35,55 @@ ABaseEnemy::ABaseEnemy()
 void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	EnemyStateDelegate.BindUObject(this, &ABaseEnemy::SwitchState);
+	if (GetWorld() && UGameplayStatics::GetPlayerCharacter(GetWorld(), 0) != nullptr) {
+		Player = CastChecked<AAdrenCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		
+	}
 	
+}
+
+void ABaseEnemy::SwitchState(){
+	GEngine->AddOnScreenDebugMessage(6, 5.f, FColor::Black, "Pew");
+	switch (EnemyState)
+	{
+	case EnemyState::Ready:
+		break;
+	case EnemyState::Activated:
+		break;
+	case EnemyState::Combat:
+		break;
+	case EnemyState::Stunned:
+		break;
+	default:
+		break;
+	}
+}
+
+void ABaseEnemy::LookAtPlayer(){
+
+}
+
+void ABaseEnemy::CalcDistBtwnPlayer(){
+	if (Player == nullptr) return;
+
+	FVector PlayerLocation = Player->GetActorLocation();
+	FVector Target = PlayerLocation - GetActorLocation();
+	double DistanceToTarget = Target.SizeSquared2D();
+	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), DistanceToTarget));
+	DrawDebugLine(GetWorld(), GetActorLocation(), PlayerLocation, FColor::Red);
+
+	if (DistanceToTarget < ActivationRadius) {
+		EnemyState = EnemyState::Activated;
+		EnemyStateDelegate.ExecuteIfBound();
+	}
 }
 
 // Called every frame
 void ABaseEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	CalcDistBtwnPlayer();
 }
 
 // Called to bind functionality to input

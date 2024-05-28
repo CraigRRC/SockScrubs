@@ -6,6 +6,10 @@
 #include "GameFramework/Pawn.h"
 #include "BaseEnemy.generated.h"
 
+
+
+DECLARE_DELEGATE(EnemyStateDelegate);
+
 UENUM(Blueprintable)
 enum class EnemyState : uint8 {
 	Ready UMETA(DisplayName = "Ready"),
@@ -33,8 +37,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	EnemyStateDelegate EnemyStateDelegate{};
+
+	EnemyState EnemyState{ EnemyState::Ready };
+
+	UFUNCTION()
+	void SwitchState();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
-	float ActivationRadius{ 16000000.f };
+	double ActivationRadius{ 16000000.f };
 
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
@@ -57,6 +68,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class USceneComponent* Root{};
+
+	void LookAtPlayer();
+
+	void CalcDistBtwnPlayer();
+
+	UPROPERTY()
+	class AAdrenCharacter* Player{};
+
+	UPROPERTY()
+	class AAdrenCharacter* SeenPlayer{};
 
 	
 
