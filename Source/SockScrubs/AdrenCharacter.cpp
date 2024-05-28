@@ -92,7 +92,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (MovementState == EPlayerMovementState::Sliding) {
 		CalcFloorInfluence();
-		
 		//Check if the velocity is greater than our crouch max speed squared.
 		if (GetVelocity().SquaredLength() < 250000.f) {
 			StopCrouching();

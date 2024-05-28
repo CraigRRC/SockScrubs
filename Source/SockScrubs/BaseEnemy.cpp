@@ -38,9 +38,7 @@ void ABaseEnemy::BeginPlay()
 	EnemyStateDelegate.BindUObject(this, &ABaseEnemy::SwitchState);
 	if (GetWorld() && UGameplayStatics::GetPlayerCharacter(GetWorld(), 0) != nullptr) {
 		Player = CastChecked<AAdrenCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-		
 	}
-	
 }
 
 void ABaseEnemy::SwitchState(){
@@ -64,6 +62,10 @@ void ABaseEnemy::LookAtPlayer(){
 
 }
 
+void ABaseEnemy::RotateTowardPlayer(){
+
+}
+
 void ABaseEnemy::CalcDistBtwnPlayer(){
 	if (Player == nullptr) return;
 
@@ -77,13 +79,20 @@ void ABaseEnemy::CalcDistBtwnPlayer(){
 		EnemyState = EnemyState::Activated;
 		EnemyStateDelegate.ExecuteIfBound();
 	}
+	else {
+		EnemyState = EnemyState::Ready;
+		EnemyStateDelegate.ExecuteIfBound();
+	}
 }
 
 // Called every frame
 void ABaseEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	CalcDistBtwnPlayer();
+	if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
+		GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+	}
+	
 }
 
 // Called to bind functionality to input

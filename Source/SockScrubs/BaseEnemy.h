@@ -44,6 +44,8 @@ protected:
 	UFUNCTION()
 	void SwitchState();
 
+	FTimerHandle DistHandle{};
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	double ActivationRadius{ 16000000.f };
 
@@ -70,6 +72,8 @@ protected:
 	class USceneComponent* Root{};
 
 	void LookAtPlayer();
+
+	void RotateTowardPlayer();
 
 	void CalcDistBtwnPlayer();
 
