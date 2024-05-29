@@ -82,6 +82,7 @@ protected:
 
 	void Fire_Implementation();
 
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyAttributes")
 	float RateOfFire{ 1.5f };
 
 	FTimerHandle FireHandle{};
@@ -92,7 +93,6 @@ protected:
 	UPROPERTY()
 	class AAdrenCharacter* SeenPlayer{};
 
-	
 
 public:
 	
