@@ -84,6 +84,8 @@ protected:
 
 	float RateOfFire{ 1.5f };
 
+	FTimerHandle FireHandle{};
+
 	UPROPERTY()
 	class AAdrenCharacter* Player{};
 

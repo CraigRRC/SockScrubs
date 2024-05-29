@@ -141,7 +141,9 @@ void ABaseEnemy::Tick(float DeltaTime)
 	case EnemyState::Combat:
 		RotateTowardPlayer();
 		LookAtPlayer();
-		Fire();
+		if (!GetWorldTimerManager().IsTimerActive(FireHandle)) {
+			GetWorldTimerManager().SetTimer(FireHandle, this, &ABaseEnemy::Fire, RateOfFire, false);
+		}
 		break;
 	case EnemyState::Stunned:
 		break;
