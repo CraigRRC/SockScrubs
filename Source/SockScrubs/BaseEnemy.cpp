@@ -52,6 +52,9 @@ void ABaseEnemy::SwitchState(){
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Activated");
 		break;
 	case EnemyState::Combat:
+		if (GetWorldTimerManager().IsTimerActive(DistHandle)) {
+			GetWorldTimerManager().ClearTimer(DistHandle);
+		}
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Combat");
 		break;
 	case EnemyState::Stunned:
@@ -105,6 +108,10 @@ void ABaseEnemy::CalcDistBtwnPlayer(){
 	}
 }
 
+void ABaseEnemy::Fire_Implementation(){
+
+}
+
 // Called every frame
 void ABaseEnemy::Tick(float DeltaTime)
 {
@@ -134,6 +141,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 	case EnemyState::Combat:
 		RotateTowardPlayer();
 		LookAtPlayer();
+		Fire();
 		break;
 	case EnemyState::Stunned:
 		break;

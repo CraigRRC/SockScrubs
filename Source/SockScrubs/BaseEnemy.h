@@ -77,6 +77,13 @@ protected:
 
 	void CalcDistBtwnPlayer();
 
+	UFUNCTION(BlueprintNativeEvent)
+	void Fire();
+
+	void Fire_Implementation();
+
+	float RateOfFire{ 1.5f };
+
 	UPROPERTY()
 	class AAdrenCharacter* Player{};
 
