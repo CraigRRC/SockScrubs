@@ -47,7 +47,7 @@ protected:
 	FTimerHandle DistHandle{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
-	double ActivationRadius{ 16000000.f };
+	double ActivationRadius{ 30000000.f };
 
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")

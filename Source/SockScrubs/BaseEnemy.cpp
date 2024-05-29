@@ -9,6 +9,7 @@
 #include "Components/SceneComponent.h"
 #include "AdrenCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
@@ -42,14 +43,16 @@ void ABaseEnemy::BeginPlay()
 }
 
 void ABaseEnemy::SwitchState(){
-	GEngine->AddOnScreenDebugMessage(6, 5.f, FColor::Black, "Pew");
 	switch (EnemyState)
 	{
 	case EnemyState::Ready:
+		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Ready");
 		break;
 	case EnemyState::Activated:
+		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Activated");
 		break;
 	case EnemyState::Combat:
+		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Combat");
 		break;
 	case EnemyState::Stunned:
 		break;
@@ -59,11 +62,28 @@ void ABaseEnemy::SwitchState(){
 }
 
 void ABaseEnemy::LookAtPlayer(){
-
+	if (Player == nullptr) return;
+	float SightRadius{ 1.f };
+	float SightDistance{ 10000.f };
+	const TArray<AActor*> Empty{};
+	TArray<FHitResult> HitResults{};
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 150.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
+	for (FHitResult const &hit : HitResults) {
+		if (hit.bBlockingHit) {
+			GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Yellow, hit.GetActor()->GetName());
+			if (Cast<AAdrenCharacter>(hit.GetActor())) {
+				SeenPlayer = Cast<AAdrenCharacter>(hit.GetActor());
+			}
+			else {
+				SeenPlayer = nullptr;
+			}
+		}
+	}
 }
 
 void ABaseEnemy::RotateTowardPlayer(){
-
+	if (Player == nullptr) return;
+	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation()));
 }
 
 void ABaseEnemy::CalcDistBtwnPlayer(){
@@ -89,10 +109,37 @@ void ABaseEnemy::CalcDistBtwnPlayer(){
 void ABaseEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
-		GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+	if (SeenPlayer != nullptr) {
+		EnemyState = EnemyState::Combat;
+		EnemyStateDelegate.ExecuteIfBound();
 	}
-	
+	else {
+		EnemyState = EnemyState::Activated;
+		EnemyStateDelegate.ExecuteIfBound();
+	}
+	switch (EnemyState)
+	{
+	case EnemyState::Ready:
+		if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
+			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+		}
+		break;
+	case EnemyState::Activated:
+		if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
+			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+		}
+		RotateTowardPlayer();
+		LookAtPlayer();
+		break;
+	case EnemyState::Combat:
+		RotateTowardPlayer();
+		LookAtPlayer();
+		break;
+	case EnemyState::Stunned:
+		break;
+	default:
+		break;
+	}
 }
 
 // Called to bind functionality to input
