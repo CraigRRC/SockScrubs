@@ -15,6 +15,7 @@ ABaseProjectile::ABaseProjectile()
 	PrimaryActorTick.bCanEverTick = true;
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collider"));
 	SetRootComponent(CollisionSphere);
+	CollisionSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	BulletMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	BulletMesh->SetupAttachment(CollisionSphere);
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));

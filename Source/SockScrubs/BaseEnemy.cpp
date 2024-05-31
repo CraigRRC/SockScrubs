@@ -20,14 +20,19 @@ ABaseEnemy::ABaseEnemy()
 	SetRootComponent(Root);
 	TempBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 	TempBodyMesh->SetupAttachment(Root);
+	TempBodyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	BodyHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("BodyHitbox"));
 	BodyHitbox->SetupAttachment(Root);
+	BodyHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
 	HeadHitbox = CreateDefaultSubobject<USphereComponent>(TEXT("HeadHitbox"));
 	HeadHitbox->SetupAttachment(Root);
+	HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
 	TempHeadMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HeadMesh"));
 	TempHeadMesh->SetupAttachment(Root);
+	TempHeadMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	TempGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	TempGunMesh->SetupAttachment(Root);
+	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawn"));
 	ProjectileSpawnPoint->SetupAttachment(TempGunMesh);
 }
