@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "UPickupsInterface.h"
+#include "Damage.h"
 #include "AdrenCharacter.generated.h"
 
 
@@ -27,7 +28,7 @@ enum class EPlayerWeaponState : uint8 {
 };
 
 UCLASS()
-class SOCKSCRUBS_API AAdrenCharacter : public ACharacter, public IUPickupsInterface
+class SOCKSCRUBS_API AAdrenCharacter : public ACharacter, public IUPickupsInterface, public IDamage
 {
 	GENERATED_BODY()
 
@@ -43,6 +44,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION()
+	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* Instigator) override;
 
 
 protected:

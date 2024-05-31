@@ -183,6 +183,10 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	
 }
 
+void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta){
+	GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "PlayerDamaged", false);
+}
+
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddControllerYawInput(AxisValue2D.X);

@@ -5,6 +5,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Damage.h"
 
 
 // Sets default values
@@ -36,6 +37,10 @@ void ABaseProjectile::BeginPlay()
 
 void ABaseProjectile::OnCollisionSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit){
 	GEngine->AddOnScreenDebugMessage(2, 3.f, FColor::Red, "HitSomething", false);
+	IDamage *DamageInterfaceExists = Cast<IDamage>(OtherActor);
+	if (DamageInterfaceExists) {
+		DamageInterfaceExists->DamageTaken(false, 0.f, this);
+	}
 	Destroy();
 }
 
