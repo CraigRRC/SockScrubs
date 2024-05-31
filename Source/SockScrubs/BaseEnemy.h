@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Damage.h"
 #include "BaseEnemy.generated.h"
 
 
@@ -19,7 +20,7 @@ enum class EnemyState : uint8 {
 };
 
 UCLASS()
-class SOCKSCRUBS_API ABaseEnemy : public APawn
+class SOCKSCRUBS_API ABaseEnemy : public APawn, public IDamage
 {
 	GENERATED_BODY()
 
@@ -33,6 +34,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -40,6 +42,9 @@ protected:
 	EnemyStateDelegate EnemyStateDelegate{};
 
 	EnemyState EnemyState{ EnemyState::Ready };
+
+	UFUNCTION()
+	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer);
 
 	UFUNCTION()
 	void SwitchState();

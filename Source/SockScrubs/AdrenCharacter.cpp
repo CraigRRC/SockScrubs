@@ -183,7 +183,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	
 }
 
-void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta){
+void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
 	GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "PlayerDamaged", false);
 }
 

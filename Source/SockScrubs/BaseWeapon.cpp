@@ -7,6 +7,7 @@
 #include "Components/SphereComponent.h"
 #include "BaseProjectile.h"
 #include "Kismet/GameplayStatics.h"
+#include "Damage.h"
 
 
 // Sets default values
@@ -46,6 +47,10 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 	DrawDebugLine(GetWorld(), Start, End, FColor::Blue, true);
 	if (Hit.bBlockingHit) {
 		GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetActor()->GetName());
+		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
+		if (HitActorHasInterface) {
+			HitActorHasInterface->DamageTaken(false, 0.f, this);
+		}
 	}
 	
 	

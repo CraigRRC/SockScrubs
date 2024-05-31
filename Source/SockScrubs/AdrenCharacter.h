@@ -46,7 +46,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* Instigator) override;
+	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer) override;
 
 
 protected:

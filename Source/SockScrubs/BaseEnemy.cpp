@@ -42,6 +42,10 @@ void ABaseEnemy::BeginPlay()
 	}
 }
 
+void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
+	GEngine->AddOnScreenDebugMessage(9, 1.f, FColor::Magenta, "EnemyDamaged", false);
+}
+
 void ABaseEnemy::SwitchState(){
 	switch (EnemyState)
 	{
