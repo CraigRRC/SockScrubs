@@ -88,7 +88,7 @@ public:
 	FORCEINLINE uint8 GetClipSize() { return ClipSize; }
 	FORCEINLINE float GetFireRate() { return FireRate; }
 	FORCEINLINE TSubclassOf<class UCameraShakeBase> GetCameraShakeBase() { return GunCameraShake; }
-	FORCEINLINE void SetOwningActor(AActor* Owner) { OwningActor = Owner; }
+	FORCEINLINE void SetOwningActor(AActor* Actor) { OwningActor = Actor; }
 };
 
 
