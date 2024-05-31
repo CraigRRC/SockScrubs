@@ -108,6 +108,8 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 
 	if(Weapon != nullptr){
 		EquippedWeapon = Cast<ABaseWeapon>(Weapon);
+		EquippedWeapon->SetOwningActor(this);
+		
 		
 		switch (WeaponType)
 		{
@@ -121,7 +123,6 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 			EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			Ammo = EquippedWeapon->GetClipSize();
 			FireCameraShake->CameraShake = EquippedWeapon->GetCameraShakeBase().Get();
-			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, EquippedWeapon->GetCameraShakeBase().Get()->GetName());
 			FullAutoTriggerCooldown = EquippedWeapon->GetFireRate();
 			AdrenPlayerController->SwitchToWeaponEquippedMappingContext();
 			break;
@@ -211,12 +212,14 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	//Turn back on the pickup collider after a bit.
 	//Nullify EquippedWeapon after a bit.
+	
 	CamManager->StopAllCameraShakes(true);
 	FTimerHandle UnequipTimerHandle{};
 	GetWorldTimerManager().SetTimer(UnequipTimerHandle, this, &AAdrenCharacter::UnequipWeapon, 0.2f, false);
 }
 
 void AAdrenCharacter::UnequipWeapon(){
+	EquippedWeapon->SetOwningActor(nullptr);
 	EquippedWeapon = nullptr;
 }
 

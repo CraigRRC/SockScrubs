@@ -49,16 +49,16 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 	if (Hit.bBlockingHit) {
 		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
 		if (HitActorHasInterface) {
-			auto Headshot = Cast<USphereComponent>(Hit.GetComponent());
-			if (Headshot) {
+			USphereComponent* Head = Cast<USphereComponent>(Hit.GetComponent());
+			UBoxComponent* Bodyshot = Cast<UBoxComponent>(Hit.GetComponent());
+			if (Head) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "HeadShot", false);
 			}
-			auto Bodyshot = Cast<UBoxComponent>(Hit.GetComponent());
-			if (Bodyshot) {
+			else if (Bodyshot) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "Bodyshot", false);
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
-			HitActorHasInterface->DamageTaken(false, 0.f, this);
+			HitActorHasInterface->DamageTaken(false, 0.f, OwningActor);
 		}
 	}
 	
