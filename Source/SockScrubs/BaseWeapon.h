@@ -79,8 +79,6 @@ protected:
 	AActor* OwningActor{};
 	
 
-
-
 public:	
 	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }
 	FORCEINLINE class USphereComponent* GetStunCollider() { return StunCollider; }
