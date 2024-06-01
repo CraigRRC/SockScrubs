@@ -177,6 +177,8 @@ protected:
 	float CapsuleHalfHeight{};
 	float CrouchedCapsuleHalfHeight{};
 
+	FTimerHandle KickTimerHandle{};
+
 	class ABaseWeapon* EquippedWeapon {};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")

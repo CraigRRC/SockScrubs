@@ -235,9 +235,10 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 }
 
 void AAdrenCharacter::Kick(const FInputActionInstance& Instance){
+	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	EnableKickHitbox();
-	FTimerHandle StopKicking{};
-	GetWorldTimerManager().SetTimer(StopKicking, this, &AAdrenCharacter::StopKicking, 0.2f, false);
+	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
+	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, 0.2f, false);
 }
 
 void AAdrenCharacter::EnableKickHitbox(){
@@ -248,6 +249,7 @@ void AAdrenCharacter::EnableKickHitbox(){
 void AAdrenCharacter::StopKicking(){
 	KickHitbox->bHiddenInGame = true;
 	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Stop Kicking", false);
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){
