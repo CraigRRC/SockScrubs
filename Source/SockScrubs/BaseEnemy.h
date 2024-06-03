@@ -7,16 +7,21 @@
 #include "Damage.h"
 #include "BaseEnemy.generated.h"
 
-
-
 DECLARE_DELEGATE(EnemyStateDelegate);
+DECLARE_DELEGATE(EnemyWeaponStateDelegate);
 
 UENUM(Blueprintable)
-enum class EnemyState : uint8 {
+enum class EEnemyState : uint8 {
 	Ready UMETA(DisplayName = "Ready"),
 	Activated UMETA(DisplayName = "Activated"),
 	Combat UMETA(DisplayName = "InCombat"),
 	Stunned UMETA(DisplayName = "Stunned"),
+};
+
+UENUM(Blueprintable)
+enum class EEnemyWeaponState : uint8 {
+	Armed UMETA(DisplayName = "Armed"),
+	Disarmed UMETA(DisplayName = "Disarmed"),
 };
 
 UCLASS()
@@ -39,9 +44,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Destroyed() override;
+
 	EnemyStateDelegate EnemyStateDelegate{};
 
-	EnemyState EnemyState{ EnemyState::Ready };
+	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
+
+	EEnemyState EnemyState{ EEnemyState::Ready };
+
+	EEnemyWeaponState EnemyWeaponState{ EEnemyWeaponState::Armed };
 
 	UFUNCTION()
 	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer);
@@ -49,10 +60,24 @@ protected:
 	UFUNCTION()
 	void SwitchState();
 
+	UFUNCTION()
+	void SwitchWeaponState();
+
+	UFUNCTION()
+	void ReturnFromStunState();
+
+	FTimerHandle StunDuration{};
+
 	FTimerHandle DistHandle{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	double ActivationRadius{ 30000000.f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	TSubclassOf<class ABaseWeapon> WeaponToSpawnWhenDropped{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	float Health{ 100.f };
 
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")

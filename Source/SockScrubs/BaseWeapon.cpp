@@ -24,6 +24,7 @@ ABaseWeapon::ABaseWeapon()
 	SetRootComponent(TempGunMesh);
 	GunMesh->SetupAttachment(RootComponent);
 	StunCollider->SetupAttachment(RootComponent);
+	StunCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PickupCollider->SetupAttachment(RootComponent);
 	StunCollider->OnComponentBeginOverlap.AddDynamic(this, &ABaseWeapon::OnStunColliderBeginOverlap);
 }
