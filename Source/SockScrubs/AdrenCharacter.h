@@ -164,6 +164,12 @@ protected:
 	void StopKicking();
 
 	UFUNCTION()
+	void OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerAttributes")
+	float KickDamage{ 40.f };
+
+	UFUNCTION()
 	void FinishShootingFullAuto(const struct FInputActionInstance& Instance);
 
 	TObjectPtr<APlayerCameraManager> CamManager{};

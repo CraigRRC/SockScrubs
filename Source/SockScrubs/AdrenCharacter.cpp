@@ -35,6 +35,7 @@ AAdrenCharacter::AAdrenCharacter()
 	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
 	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
+	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
 	
 }
 
@@ -258,6 +259,13 @@ void AAdrenCharacter::StopKicking(){
 	KickHitbox->bHiddenInGame = true;
 	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Stop Kicking", false);
+}
+
+void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
+	IDamage* HitActor = Cast<IDamage>(OtherActor);
+	if (HitActor) {
+		HitActor->DamageTaken(true, KickDamage, this);
+	}
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){
