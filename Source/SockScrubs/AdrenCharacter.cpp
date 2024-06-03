@@ -12,6 +12,8 @@
 #include "AdrenPlayerController.h"
 #include "Camera/CameraShakeSourceComponent.h"
 #include "Components/BoxComponent.h"
+//Temp
+#include "Kismet/GameplayStatics.h"
 
 
 
@@ -188,6 +190,15 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
 	GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "PlayerDamaged", false);
+	Health -= DamageDelta;
+	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
+	if (ClampedHealth <= 0.f) {
+		FString LevelString = UGameplayStatics::GetCurrentLevelName(GetWorld());
+		FName LevelName = FName(LevelString);
+		UGameplayStatics::OpenLevel(GetWorld(), LevelName);
+		//Trigger Event that tells the GameMode that the player died.
+
+	}
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
