@@ -77,7 +77,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	AActor* OwningActor{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	float FirePower{ 20.f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	float ThrownDamage{ 60.f };
 	
+	UFUNCTION()
+	void OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:	
 	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }

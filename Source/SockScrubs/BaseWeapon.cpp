@@ -25,6 +25,7 @@ ABaseWeapon::ABaseWeapon()
 	GunMesh->SetupAttachment(RootComponent);
 	StunCollider->SetupAttachment(RootComponent);
 	PickupCollider->SetupAttachment(RootComponent);
+	StunCollider->OnComponentBeginOverlap.AddDynamic(this, &ABaseWeapon::OnStunColliderBeginOverlap);
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +33,13 @@ void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ABaseWeapon::OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
+	IDamage* HitActor = Cast<IDamage>(OtherActor);
+	if (HitActor) {
+		HitActor->DamageTaken(true, ThrownDamage, this);
+	}
 }
 
 // Called every frame
@@ -59,7 +67,7 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "Bodyshot", false);
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
-			HitActorHasInterface->DamageTaken(false, 0.f, OwningActor);
+			HitActorHasInterface->DamageTaken(false, FirePower, OwningActor);
 		}
 	}
 	

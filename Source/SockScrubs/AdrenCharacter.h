@@ -104,8 +104,11 @@ protected:
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Throw(const struct FInputActionInstance& Instance);
+
+	UFUNCTION()
+	void ThrowWhenEmpty(const struct FInputActionInstance& Instance);
 
 	void UnequipWeapon();
 

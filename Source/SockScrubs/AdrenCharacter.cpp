@@ -178,6 +178,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AAdrenCharacter::FinishShootingFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &AAdrenCharacter::FinishShootingFullAuto);
+	Input->BindAction(IA_Shoot, ETriggerEvent::Started, this, &AAdrenCharacter::ThrowWhenEmpty);
 	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
 	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
 
@@ -212,10 +213,17 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	//Turn back on the pickup collider after a bit.
 	//Nullify EquippedWeapon after a bit.
+	AdrenPlayerController->SwitchToDefaultMappingContext();
 	
 	CamManager->StopAllCameraShakes(true);
 	FTimerHandle UnequipTimerHandle{};
 	GetWorldTimerManager().SetTimer(UnequipTimerHandle, this, &AAdrenCharacter::UnequipWeapon, 0.2f, false);
+}
+
+void AAdrenCharacter::ThrowWhenEmpty(const FInputActionInstance& Instance){
+	if (!bCanFire) {
+		Throw(Instance);
+	}
 }
 
 void AAdrenCharacter::UnequipWeapon(){
