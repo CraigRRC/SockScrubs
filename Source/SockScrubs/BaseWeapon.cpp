@@ -63,9 +63,11 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			UBoxComponent* Bodyshot = Cast<UBoxComponent>(Hit.GetComponent());
 			if (Head) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "HeadShot", false);
+				FirePower = 100.f;
 			}
 			else if (Bodyshot) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "Bodyshot", false);
+				FirePower = 10.f;
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
 			HitActorHasInterface->DamageTaken(false, FirePower, OwningActor);

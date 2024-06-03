@@ -79,7 +79,7 @@ protected:
 	AActor* OwningActor{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
-	float FirePower{ 20.f };
+	float FirePower{ 10.f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	float ThrownDamage{ 60.f };

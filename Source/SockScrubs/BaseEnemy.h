@@ -16,6 +16,7 @@ enum class EEnemyState : uint8 {
 	Activated UMETA(DisplayName = "Activated"),
 	Combat UMETA(DisplayName = "InCombat"),
 	Stunned UMETA(DisplayName = "Stunned"),
+	Dead UMETA(DisplayName = "Dead"),
 };
 
 UENUM(Blueprintable)
@@ -60,6 +61,8 @@ protected:
 	UFUNCTION()
 	void SwitchState();
 
+	void DropEquippedWeapon();
+
 	UFUNCTION()
 	void SwitchWeaponState();
 
@@ -78,6 +81,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	float Health{ 100.f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	float MaxHealth{ Health };
 
 	//Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")

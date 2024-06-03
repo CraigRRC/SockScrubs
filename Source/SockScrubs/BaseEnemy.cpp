@@ -60,6 +60,15 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer)
 		EnemyState = EEnemyState::Stunned;
 		EnemyStateDelegate.ExecuteIfBound();
 	}
+	Health -= DamageDelta;
+	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
+	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("HP: %.2f"), ClampedHealth));
+	if (ClampedHealth <= 0.f) {
+		EnemyState = EEnemyState::Dead;
+		EnemyStateDelegate.ExecuteIfBound();
+	}
+	
+
 }
 
 void ABaseEnemy::SwitchState(){
@@ -88,24 +97,36 @@ void ABaseEnemy::SwitchState(){
 		TempGunMesh->SetVisibility(false);
 		//Spawn a Rifle
 		if (WeaponToSpawnWhenDropped && EnemyWeaponState == EEnemyWeaponState::Armed) {
-			ABaseWeapon* SpawnedWeapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponToSpawnWhenDropped, TempGunMesh->GetComponentTransform());
-			//Simulate physics on the rifle
-			SpawnedWeapon->GetGunMesh()->SetSimulatePhysics(true);
-			//Set disarmed
-			EnemyWeaponState = EEnemyWeaponState::Disarmed;
-			EnemyWeaponStateDelegate.ExecuteIfBound();
+			DropEquippedWeapon();
 		}
 
 		//Set Timer to have the enemy come back from stun.
 		GetWorldTimerManager().SetTimer(StunDuration, this, &ABaseEnemy::ReturnFromStunState, 4.f, false);
 		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Green, "Stun", false);
-		
-		
-		
 		break;
+	case EEnemyState::Dead:
+		GetWorldTimerManager().ClearAllTimersForObject(this);
+		DropEquippedWeapon();
+		//Create Timer
+		//Play Sound
+		//Tell UI that i am no longer living
+		Destroy();
+		//Something
+		break;
+		
 	default:
 		break;
 	}
+}
+
+void ABaseEnemy::DropEquippedWeapon()
+{
+	ABaseWeapon* SpawnedWeapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponToSpawnWhenDropped, TempGunMesh->GetComponentTransform());
+	//Simulate physics on the rifle
+	SpawnedWeapon->GetGunMesh()->SetSimulatePhysics(true);
+	//Set disarmed
+	EnemyWeaponState = EEnemyWeaponState::Disarmed;
+	EnemyWeaponStateDelegate.ExecuteIfBound();
 }
 
 void ABaseEnemy::SwitchWeaponState(){
@@ -121,7 +142,6 @@ void ABaseEnemy::SwitchWeaponState(){
 }
 
 void ABaseEnemy::ReturnFromStunState(){
-	
 	EnemyState = EEnemyState::Activated;
 	EnemyStateDelegate.ExecuteIfBound();
 }
@@ -178,14 +198,7 @@ void ABaseEnemy::Fire_Implementation(){
 void ABaseEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (SeenPlayer != nullptr && EnemyWeaponState != EEnemyWeaponState::Disarmed) {
-		EnemyState = EEnemyState::Combat;
-		EnemyStateDelegate.ExecuteIfBound();
-	}
-	else if(EnemyState != EEnemyState::Stunned) {
-		EnemyState = EEnemyState::Activated;
-		EnemyStateDelegate.ExecuteIfBound();
-	}
+	
 
 	switch (EnemyState)
 	{
@@ -210,8 +223,20 @@ void ABaseEnemy::Tick(float DeltaTime)
 		break;
 	case EEnemyState::Stunned:
 		break;
+	case EEnemyState::Dead:
+		return;
+		break;
 	default:
 		break;
+	}
+
+	if (SeenPlayer != nullptr && EnemyWeaponState != EEnemyWeaponState::Disarmed) {
+		EnemyState = EEnemyState::Combat;
+		EnemyStateDelegate.ExecuteIfBound();
+	}
+	else if (EnemyState != EEnemyState::Stunned) {
+		EnemyState = EEnemyState::Activated;
+		EnemyStateDelegate.ExecuteIfBound();
 	}
 
 	//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), GetWorldTimerManager().GetTimerRemaining(StunDuration)));
