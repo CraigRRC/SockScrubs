@@ -149,7 +149,7 @@ void ABaseEnemy::ReturnFromStunState(){
 void ABaseEnemy::LookAtPlayer(){
 	if (Player == nullptr) return;
 	float SightRadius{ 1.f };
-	float SightDistance{ 10000.f };
+	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 150.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);

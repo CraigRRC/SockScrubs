@@ -74,7 +74,7 @@ protected:
 	FTimerHandle DistHandle{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
-	double ActivationRadius{ 30000000.f };
+	double ActivationRadius{ 10000000.f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	TSubclassOf<class ABaseWeapon> WeaponToSpawnWhenDropped{};
