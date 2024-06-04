@@ -51,8 +51,12 @@ void ABaseEnemy::BeginPlay()
 }
 
 void ABaseEnemy::Destroyed(){
-	EnemyStateDelegate.Unbind(); 
-	EnemyWeaponStateDelegate.Unbind();
+	if (EnemyStateDelegate.IsBound()) {
+		EnemyStateDelegate.Unbind();
+	}
+	if (EnemyWeaponStateDelegate.IsBound()) {
+		EnemyWeaponStateDelegate.Unbind();
+	}
 }
 
 void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
