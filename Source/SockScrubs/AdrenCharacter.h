@@ -10,6 +10,7 @@
 
 
 DECLARE_DELEGATE(MovementDelegate);
+DECLARE_DELEGATE(StartRunDelegate);
 
 enum EPlayerMovementState : uint8 {
 	Running,
@@ -39,6 +40,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	bool RunStarted{ false };
+
 	UFUNCTION()
 	virtual void PickupWeapon(AActor* Weapon, WeaponType WeaponType) override;
 
@@ -48,12 +51,16 @@ public:
 	UFUNCTION()
 	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer) override;
 
+	StartRunDelegate StartRunDelegate{};
+
 
 protected:
 	//Overrides
 	virtual void BeginPlay() override;
 
 	virtual void Destroyed() override;
+
+	
 
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
@@ -111,6 +118,8 @@ protected:
 	void ThrowWhenEmpty(const struct FInputActionInstance& Instance);
 
 	void UnequipWeapon();
+
+	void StartRun();
 
 
 	UFUNCTION()
@@ -211,6 +220,7 @@ public:
 	FORCEINLINE float GetStandingCapsuleHalfHeight() { return CapsuleHalfHeight; }
 	FORCEINLINE float GetCrouchingCapsuleHalfHeight() { return CrouchedCapsuleHalfHeight; }
 	FORCEINLINE EPlayerMovementState GetPlayerMovementState() { return MovementState; }
+	FORCEINLINE void SetRunStarted(bool Delta) { RunStarted = Delta; }
 };
 
 

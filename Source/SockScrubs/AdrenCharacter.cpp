@@ -17,6 +17,7 @@
 
 
 
+
 // Sets default values
 AAdrenCharacter::AAdrenCharacter()
 {
@@ -51,7 +52,9 @@ void AAdrenCharacter::BeginPlay()
 
 void AAdrenCharacter::Destroyed()
 {
-	MovementStateDelegate.Unbind();
+	if (MovementStateDelegate.IsBound()) {
+		MovementStateDelegate.Unbind();
+	}
 }
 
 
@@ -183,6 +186,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Shoot, ETriggerEvent::Started, this, &AAdrenCharacter::ThrowWhenEmpty);
 	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
 	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
+	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
 
 	
 }
@@ -240,6 +244,13 @@ void AAdrenCharacter::ThrowWhenEmpty(const FInputActionInstance& Instance){
 void AAdrenCharacter::UnequipWeapon(){
 	EquippedWeapon->SetOwningActor(nullptr);
 	EquippedWeapon = nullptr;
+}
+
+void AAdrenCharacter::StartRun(){
+	if (AdrenPlayerController->IsPaused() && !RunStarted) {
+		StartRunDelegate.ExecuteIfBound();
+		SetRunStarted(true);
+	}
 }
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
