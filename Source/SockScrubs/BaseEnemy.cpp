@@ -94,6 +94,7 @@ void ABaseEnemy::SwitchState(){
 		if (GetWorldTimerManager().IsTimerActive(DistHandle)) {
 			GetWorldTimerManager().ClearTimer(DistHandle);
 		}
+		
 		//Turn off the weapon visiblility
 		TempGunMesh->SetVisibility(false);
 		//Spawn a Rifle
@@ -103,7 +104,6 @@ void ABaseEnemy::SwitchState(){
 
 		//Set Timer to have the enemy come back from stun.
 		GetWorldTimerManager().SetTimer(StunDuration, this, &ABaseEnemy::ReturnFromStunState, 4.f, false);
-		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Green, "Stun", false);
 		break;
 	case EEnemyState::Dead:
 		GetWorldTimerManager().ClearAllTimersForObject(this);
@@ -178,7 +178,7 @@ void ABaseEnemy::CalcDistBtwnPlayer(){
 	FVector PlayerLocation = Player->GetActorLocation();
 	FVector Target = PlayerLocation - GetActorLocation();
 	double DistanceToTarget = Target.SizeSquared2D();
-	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), DistanceToTarget));
+	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), DistanceToTarget), false);
 	DrawDebugLine(GetWorld(), GetActorLocation(), PlayerLocation, FColor::Red);
 
 	if (DistanceToTarget < ActivationRadius) {
@@ -210,7 +210,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 		break;
 	case EEnemyState::Activated:
 		if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
-			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 5.f, false);
 		}
 		RotateTowardPlayer();
 		LookAtPlayer();
@@ -233,10 +233,6 @@ void ABaseEnemy::Tick(float DeltaTime)
 
 	if (SeenPlayer != nullptr && EnemyWeaponState != EEnemyWeaponState::Disarmed) {
 		EnemyState = EEnemyState::Combat;
-		EnemyStateDelegate.ExecuteIfBound();
-	}
-	else if (EnemyState != EEnemyState::Stunned) {
-		EnemyState = EEnemyState::Activated;
 		EnemyStateDelegate.ExecuteIfBound();
 	}
 

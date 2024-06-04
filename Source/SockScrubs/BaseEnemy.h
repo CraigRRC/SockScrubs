@@ -51,6 +51,7 @@ protected:
 
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	EEnemyState EnemyState{ EEnemyState::Ready };
 
 	EEnemyWeaponState EnemyWeaponState{ EEnemyWeaponState::Armed };
@@ -74,7 +75,7 @@ protected:
 	FTimerHandle DistHandle{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
-	double ActivationRadius{ 1000000.f };
+	double ActivationRadius{ 16000000.0 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	TSubclassOf<class ABaseWeapon> WeaponToSpawnWhenDropped{};
