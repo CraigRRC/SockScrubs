@@ -37,7 +37,8 @@ ABaseEnemy::ABaseEnemy()
 	TempGunMesh->SetupAttachment(Root);
 	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	HealthWidgetComponent->SetupAttachment(Root);
-	HealthWidgetComponent->SetVisibility(true);
+	HealthWidgetComponent->SetVisibility(false);
+	HealthWidgetComponent->SetComponentTickEnabled(false);
 	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawn"));
 	ProjectileSpawnPoint->SetupAttachment(TempGunMesh);
@@ -98,15 +99,21 @@ void ABaseEnemy::SwitchState(){
 	{
 	case EEnemyState::Ready:
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Ready");
+		HealthWidgetComponent->SetVisibility(false);
+		HealthWidgetComponent->SetComponentTickEnabled(false);
 		break;
 	case EEnemyState::Activated:
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Activated");
+		HealthWidgetComponent->SetVisibility(false);
+		HealthWidgetComponent->SetComponentTickEnabled(false);
 		break;
 	case EEnemyState::Combat:
 		if (GetWorldTimerManager().IsTimerActive(DistHandle)) {
 			GetWorldTimerManager().ClearTimer(DistHandle);
 		}
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Combat");
+		HealthWidgetComponent->SetComponentTickEnabled(true);
+		HealthWidgetComponent->SetVisibility(true);
 		break;
 	case EEnemyState::Stunned:
 		if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
@@ -115,7 +122,8 @@ void ABaseEnemy::SwitchState(){
 		if (GetWorldTimerManager().IsTimerActive(DistHandle)) {
 			GetWorldTimerManager().ClearTimer(DistHandle);
 		}
-		
+		HealthWidgetComponent->SetComponentTickEnabled(true);
+		HealthWidgetComponent->SetVisibility(true);
 		//Turn off the weapon visiblility
 		TempGunMesh->SetVisibility(false);
 		//Spawn a Rifle
