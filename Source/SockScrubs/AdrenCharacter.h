@@ -42,6 +42,9 @@ public:
 
 	bool RunStarted{ false };
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	class UPlayerHUDWidget* HUDWidget{};
+
 	UFUNCTION()
 	virtual void PickupWeapon(AActor* Weapon, WeaponType WeaponType) override;
 
@@ -189,7 +192,7 @@ protected:
 	bool bCanFire{ true };
 
 	//Character Attributes
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCapsuleComponent* PlayerCapsule{};
 	float CapsuleHalfHeight{};
 	float CrouchedCapsuleHalfHeight{};
@@ -198,22 +201,22 @@ protected:
 
 	class ABaseWeapon* EquippedWeapon {};
 
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerAttributes")
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float KickDamage{ 40.f };
 
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerAttributes")
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float Health{ 100.f };
 
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerAttributes")
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float MaxHealth{ Health };
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraComponent* PlayerCam{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UBoxComponent* KickHitbox{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class USkeletalMeshComponent* PlayerMesh{};
 
 public:

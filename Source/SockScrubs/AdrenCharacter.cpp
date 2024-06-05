@@ -13,9 +13,7 @@
 #include "Camera/CameraShakeSourceComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
-
-
-
+#include "PlayerHUDWidget.h"
 
 
 // Sets default values
@@ -48,6 +46,8 @@ void AAdrenCharacter::BeginPlay()
 	AdrenPlayerController = CastChecked<AAdrenPlayerController>(GetLocalViewingPlayerController());
 	MovementStateDelegate.BindUObject(this, &AAdrenCharacter::UpdateMovementState);
 	CamManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+	HUDWidget->SetOwningPlayer(AdrenPlayerController);
+	HUDWidget->AddToPlayerScreen();
 }
 
 void AAdrenCharacter::Destroyed()
