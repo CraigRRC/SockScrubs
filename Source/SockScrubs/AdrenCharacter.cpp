@@ -36,7 +36,6 @@ AAdrenCharacter::AAdrenCharacter()
 	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
 	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
 	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
-	
 }
 
 // Called when the game starts or when spawned
@@ -48,6 +47,8 @@ void AAdrenCharacter::BeginPlay()
 	CamManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 	HUDWidget->SetOwningPlayer(AdrenPlayerController);
 	HUDWidget->AddToPlayerScreen();
+	HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Hidden);
+	
 }
 
 void AAdrenCharacter::Destroyed()
@@ -115,6 +116,10 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 	if(Weapon != nullptr){
 		EquippedWeapon = Cast<ABaseWeapon>(Weapon);
 		EquippedWeapon->SetOwningActor(this);
+		if (HUDWidget) {
+			HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Visible);
+		}
+		
 		
 		
 		switch (WeaponType)
@@ -128,6 +133,9 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 			EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			Ammo = EquippedWeapon->GetClipSize();
+			if (HUDWidget) {
+				HUDWidget->SetAmmoCounter(Ammo);
+			}
 			FireCameraShake->CameraShake = EquippedWeapon->GetCameraShakeBase().Get();
 			FullAutoTriggerCooldown = EquippedWeapon->GetFireRate();
 			AdrenPlayerController->SwitchToWeaponEquippedMappingContext();
@@ -214,6 +222,9 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	if (EquippedWeapon == nullptr) return;
 	//Unsocket
+	if (HUDWidget) {
+		HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Hidden);
+	}
 	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	//Simulate physics on it if not already simulating
 	EquippedWeapon->GetGunMesh()->SetSimulatePhysics(true);
@@ -260,6 +271,9 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	PlayerMesh->GetAnimInstance()->Montage_Play(FireMontage);
 	CamManager->StartCameraShake(FireCameraShake->CameraShake, 1.0f);
 	Ammo--;
+	if (HUDWidget) {
+		HUDWidget->SetAmmoCounter(Ammo);
+	}
 	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
 	bCanFire = false;
 

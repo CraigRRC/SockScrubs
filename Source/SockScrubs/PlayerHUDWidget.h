@@ -14,7 +14,7 @@ class SOCKSCRUBS_API UPlayerHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
+protected:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* Timer{};
@@ -30,5 +30,10 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UProgressBar* ComboBar{};
+
+public:
+	void SetAmmoCounter(uint8 CurrentAmmo);
+
+	void SetAmmoCounterVisibility(ESlateVisibility Visiblity);
 	
 };
