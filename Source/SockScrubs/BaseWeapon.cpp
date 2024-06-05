@@ -77,7 +77,7 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			}
 			else if (Bodyshot) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "Bodyshot", false);
-				FirePower = 10.f;
+				FirePower = 20.f;
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
 			HitActorHasInterface->DamageTaken(false, FirePower, OwningActor);

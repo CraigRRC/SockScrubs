@@ -13,5 +13,13 @@ UCLASS()
 class SOCKSCRUBS_API UEnemyHealthWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void NativeConstruct() override;
+
+	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
+	class UProgressBar* HP{};
+
+	void SetHealthPercent(float Delta);
+
 };

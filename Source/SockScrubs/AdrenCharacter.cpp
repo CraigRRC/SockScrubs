@@ -52,6 +52,7 @@ void AAdrenCharacter::BeginPlay()
 
 void AAdrenCharacter::Destroyed()
 {
+	Super::Destroyed();
 	if (MovementStateDelegate.IsBound()) {
 		MovementStateDelegate.Unbind();
 	}

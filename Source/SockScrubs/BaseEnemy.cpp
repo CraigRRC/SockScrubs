@@ -11,6 +11,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BaseWeapon.h"
+#include "Components/WidgetComponent.h"
+#include "EnemyHealthWidget.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
@@ -33,6 +35,9 @@ ABaseEnemy::ABaseEnemy()
 	TempHeadMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	TempGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	TempGunMesh->SetupAttachment(Root);
+	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+	HealthWidgetComponent->SetupAttachment(Root);
+	HealthWidgetComponent->SetVisibility(true);
 	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawn"));
 	ProjectileSpawnPoint->SetupAttachment(TempGunMesh);
@@ -48,15 +53,24 @@ void ABaseEnemy::BeginPlay()
 	if (GetWorld() && UGameplayStatics::GetPlayerCharacter(GetWorld(), 0) != nullptr) {
 		Player = CastChecked<AAdrenCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	}
+	HealthWidget = Cast<UEnemyHealthWidget>(HealthWidgetComponent->GetWidget());
+	if (HealthWidget) {
+		HealthWidget->SetHealthPercent(ConvertHealthToPercent());
+	}
 }
 
 void ABaseEnemy::Destroyed(){
+	Super::Destroyed();
 	if (EnemyStateDelegate.IsBound()) {
 		EnemyStateDelegate.Unbind();
 	}
 	if (EnemyWeaponStateDelegate.IsBound()) {
 		EnemyWeaponStateDelegate.Unbind();
 	}
+}
+
+float ABaseEnemy::ConvertHealthToPercent(){
+	return Health / MaxHealth;
 }
 
 void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
@@ -66,6 +80,9 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer)
 		EnemyStateDelegate.ExecuteIfBound();
 	}
 	Health -= DamageDelta;
+	if (HealthWidget) {
+		HealthWidget->SetHealthPercent(ConvertHealthToPercent());
+	}
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
 	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("HP: %.2f"), ClampedHealth));
 	if (ClampedHealth <= 0.f) {

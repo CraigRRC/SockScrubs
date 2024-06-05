@@ -56,6 +56,10 @@ protected:
 
 	EEnemyWeaponState EnemyWeaponState{ EEnemyWeaponState::Armed };
 
+	float ConvertHealthToPercent();
+
+	class UEnemyHealthWidget* HealthWidget{};
+
 	UFUNCTION()
 	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer);
 
@@ -95,6 +99,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class UStaticMeshComponent* TempBodyMesh{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	class UWidgetComponent* HealthWidgetComponent{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class UStaticMeshComponent* TempHeadMesh{};
