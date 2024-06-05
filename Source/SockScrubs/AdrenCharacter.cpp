@@ -237,7 +237,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 }
 
 void AAdrenCharacter::ThrowWhenEmpty(const FInputActionInstance& Instance){
-	if (!bCanFire) {
+	if (Ammo == 0) {
 		Throw(Instance);
 	}
 }
