@@ -68,9 +68,9 @@ protected:
 	
 	FTimerHandle ComboResetHandle{};
 
-	float ComboTimer{ 5.f };
+	float ComboTimer{ 4.f };
 
-	float MaxComboTime{ 5.f };
+	float MaxComboTime{ ComboTimer };
 
 	
 };
