@@ -35,5 +35,7 @@ public:
 	void SetAmmoCounter(uint8 CurrentAmmo);
 
 	void SetAmmoCounterVisibility(ESlateVisibility Visiblity);
+
+	void SetAdrenalineBarPercent(float MaxHealth);
 	
 };

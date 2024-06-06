@@ -48,7 +48,7 @@ void AAdrenCharacter::BeginPlay()
 	HUDWidget->SetOwningPlayer(AdrenPlayerController);
 	HUDWidget->AddToPlayerScreen();
 	HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Hidden);
-	
+	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(Health));
 }
 
 void AAdrenCharacter::Destroyed()
@@ -92,6 +92,9 @@ void AAdrenCharacter::UpdateMovementState()
 void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	DrainLife(ShouldDrainHealth, DeltaTime);
+
 	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > 400000.f && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
@@ -105,8 +108,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
 		}
 	}
-
-	
 }
 
 void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
@@ -119,9 +120,7 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 		if (HUDWidget) {
 			HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Visible);
 		}
-		
-		
-		
+
 		switch (WeaponType)
 		{
 		case WeaponType::Rifle:
@@ -164,7 +163,6 @@ void AAdrenCharacter::CalcFloorInfluence()
 	}
 	ClampSlideVelocity();
 	PlayerMovementComp->AddForce(DirectionToAddForce * DownhillForce);
-
 }
 
 void AAdrenCharacter::ClampSlideVelocity()
@@ -196,21 +194,24 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
 	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
 	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
-
-	
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
 	GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "PlayerDamaged", false);
 	Health -= DamageDelta;
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
+	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
-		FString LevelString = UGameplayStatics::GetCurrentLevelName(GetWorld());
-		FName LevelName = FName(LevelString);
-		UGameplayStatics::OpenLevel(GetWorld(), LevelName);
-		//Trigger Event that tells the GameMode that the player died.
-
+		PlayerDie();
 	}
+}
+
+void AAdrenCharacter::PlayerDie()
+{
+	FString LevelString = UGameplayStatics::GetCurrentLevelName(GetWorld());
+	FName LevelName = FName(LevelString);
+	UGameplayStatics::OpenLevel(GetWorld(), LevelName);
+	//Trigger Event that tells the GameMode that the player died.
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -262,6 +263,7 @@ void AAdrenCharacter::StartRun(){
 	if (AdrenPlayerController->IsPaused() && !RunStarted) {
 		StartRunDelegate.ExecuteIfBound();
 		SetRunStarted(true);
+		ShouldDrainHealth = true;
 	}
 }
 
@@ -315,6 +317,16 @@ void AAdrenCharacter::ResetTrigger(){
 	if (Ammo == 0) {
 		bCanFire = false;
 		CamManager->StopAllCameraShakes(false);
+	}
+}
+
+void AAdrenCharacter::DrainLife(bool ShouldDrainLife, float DeltaTime){
+	if (ShouldDrainLife) {
+		Health -= DeltaTime;
+		HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(Health));
+		if (Health <= 0.f) {
+			PlayerDie();
+		}
 	}
 }
 

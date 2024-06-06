@@ -3,6 +3,7 @@
 
 #include "PlayerHUDWidget.h"
 #include "Components/TextBlock.h"
+#include "Components/ProgressBar.h"
 
 void UPlayerHUDWidget::SetAmmoCounter(uint8 CurrentAmmo){
 	FString AmmoString = FString::FromInt(CurrentAmmo);
@@ -12,4 +13,8 @@ void UPlayerHUDWidget::SetAmmoCounter(uint8 CurrentAmmo){
 
 void UPlayerHUDWidget::SetAmmoCounterVisibility(ESlateVisibility Visiblity){
 	AmmoCounter->SetVisibility(Visiblity);
+}
+
+void UPlayerHUDWidget::SetAdrenalineBarPercent(float HealthAsPercent){
+	AdrenalineBar->SetPercent(HealthAsPercent);
 }

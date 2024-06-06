@@ -54,6 +54,8 @@ public:
 	UFUNCTION()
 	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer) override;
 
+	void PlayerDie();
+
 	StartRunDelegate StartRunDelegate{};
 
 
@@ -124,6 +126,8 @@ protected:
 
 	void StartRun();
 
+	
+
 
 	UFUNCTION()
 	void WantsToCrouch(const struct FInputActionInstance& Instance);
@@ -149,8 +153,6 @@ protected:
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
-
-	
 
 	//GunProperties
 	uint8 Ammo{};
@@ -197,6 +199,9 @@ protected:
 	float CapsuleHalfHeight{};
 	float CrouchedCapsuleHalfHeight{};
 
+	void DrainLife(bool ShouldDrainLife, float DeltaTime);
+	bool ShouldDrainHealth{ false };
+
 	FTimerHandle KickTimerHandle{};
 
 	class ABaseWeapon* EquippedWeapon {};
@@ -205,7 +210,7 @@ protected:
 	float KickDamage{ 40.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float Health{ 100.f };
+	float Health{ 10.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float MaxHealth{ Health };
@@ -224,6 +229,8 @@ public:
 	FORCEINLINE float GetCrouchingCapsuleHalfHeight() { return CrouchedCapsuleHalfHeight; }
 	FORCEINLINE EPlayerMovementState GetPlayerMovementState() { return MovementState; }
 	FORCEINLINE void SetRunStarted(bool Delta) { RunStarted = Delta; }
+	FORCEINLINE float ConvertHealthToPercent(float CurrentHealth) { return CurrentHealth / MaxHealth; }
+	
 };
 
 

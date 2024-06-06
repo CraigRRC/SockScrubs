@@ -22,7 +22,7 @@ protected:
 	virtual void Destroyed() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ProjectileAttributes)
-	float Damage{30.f};
+	float Damage{3.f};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ProjectileAttributes)
 	class USphereComponent* CollisionSphere{};

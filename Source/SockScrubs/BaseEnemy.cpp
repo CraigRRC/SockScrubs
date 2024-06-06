@@ -42,7 +42,6 @@ ABaseEnemy::ABaseEnemy()
 	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawn"));
 	ProjectileSpawnPoint->SetupAttachment(TempGunMesh);
-	
 }
 
 // Called when the game starts or when spawned
@@ -141,7 +140,6 @@ void ABaseEnemy::SwitchState(){
 		//Play Sound
 		//Tell UI that i am no longer living
 		Destroy();
-		//Something
 		break;
 		
 	default:

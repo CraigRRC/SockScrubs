@@ -11,6 +11,7 @@ AAdrenGameMode::AAdrenGameMode(){
 
 
 void AAdrenGameMode::BeginPlay(){
+	Super::BeginPlay();
 	if (BeginRunWidget != nullptr && GetWorld() != nullptr) {
 		BeginRunWidget->SetOwningPlayer(GetWorld()->GetFirstPlayerController());
 	}
@@ -18,6 +19,7 @@ void AAdrenGameMode::BeginPlay(){
 }
 
 void AAdrenGameMode::Destroyed(){
+	Super::Destroyed();
 	if (Player) {
 		Player->StartRunDelegate.Unbind();
 	}
