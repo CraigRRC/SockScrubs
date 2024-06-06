@@ -11,10 +11,25 @@ void UPlayerHUDWidget::SetAmmoCounter(uint8 CurrentAmmo){
 	AmmoCounter->SetText(AmmoText);
 }
 
-void UPlayerHUDWidget::SetAmmoCounterVisibility(ESlateVisibility Visiblity){
-	AmmoCounter->SetVisibility(Visiblity);
+void UPlayerHUDWidget::SetAmmoCounterVisibility(ESlateVisibility V){
+	AmmoCounter->SetVisibility(V);
 }
 
 void UPlayerHUDWidget::SetAdrenalineBarPercent(float HealthAsPercent){
 	AdrenalineBar->SetPercent(HealthAsPercent);
+}
+
+void UPlayerHUDWidget::SetComboBarPercent(float Percent){
+	ComboBar->SetPercent(Percent);
+}
+
+void UPlayerHUDWidget::SetComboCounterVisibility(ESlateVisibility V){
+	ComboCounter->SetVisibility(V);
+	ComboBar->SetVisibility(V);
+}
+
+void UPlayerHUDWidget::SetComboCounterText(uint8 Combo){
+	FString ComboString = FString::FromInt(Combo);
+	FText ComboText = FText::FromString(ComboString);
+	ComboCounter->SetText(ComboText);
 }

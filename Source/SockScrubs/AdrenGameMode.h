@@ -48,6 +48,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
 	class UBeginRunWidget* BeginRunWidget{};
 
+	class UPlayerHUDWidget* PlayerHUDWidget{};
+
 	class AAdrenCharacter* Player{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Enemy)
@@ -57,7 +59,18 @@ protected:
 	TArray<class AActor*> EnemyArray{};
 
 	void EnemyEliminated(class ABaseEnemy* Enemy, float HealthRegain);
+
+	void ResetComboCount();
+
+	uint8 CurrentCombo{};
+
+	uint8 HighestCombo{};
 	
+	FTimerHandle ComboResetHandle{};
+
+	float ComboTimer{ 5.f };
+
+	float MaxComboTime{ 5.f };
 
 	
 };

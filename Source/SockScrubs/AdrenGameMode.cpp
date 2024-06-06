@@ -6,6 +6,7 @@
 #include "AdrenCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "BaseEnemy.h"
+#include "PlayerHUDWidget.h"
 
 AAdrenGameMode::AAdrenGameMode(){
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,9 +29,23 @@ void AAdrenGameMode::Destroyed(){
 }
 
 void AAdrenGameMode::EnemyEliminated(ABaseEnemy* Enemy, float HealthRegain){
-	GEngine->AddOnScreenDebugMessage(6, 3.f, FColor::Green, "Worked", false);
 	Enemy->EnemyEliminatedDelegate.Unbind();
 	GainAdrenalineDelegate.ExecuteIfBound(HealthRegain);
+	CurrentCombo++;
+	if (CurrentCombo > HighestCombo) {
+		HighestCombo = CurrentCombo;
+	}
+	if (CurrentCombo > 1) {
+		PlayerHUDWidget->SetComboCounterVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetComboCounterText(CurrentCombo);
+	}
+	GetWorldTimerManager().SetTimer(ComboResetHandle, this, &AAdrenGameMode::ResetComboCount, ComboTimer, false);
+
+}
+
+void AAdrenGameMode::ResetComboCount(){
+	CurrentCombo = 0;
+	PlayerHUDWidget->SetComboCounterVisibility(ESlateVisibility::Hidden);
 }
 
 void AAdrenGameMode::StartRun() {
@@ -45,6 +60,7 @@ void AAdrenGameMode::Tick(float DeltaTime){
 		}
 	}
 	else if (Player && DoOnce) {
+		PlayerHUDWidget = Player->HUDWidget;
 		AddStartRunWidgetToScreen();
 		BindStartRunDelegate();
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), EnemyClass, EnemyArray);
@@ -54,6 +70,11 @@ void AAdrenGameMode::Tick(float DeltaTime){
 		}
 
 		DoOnce = false;
+	}
+
+	if (CurrentCombo > 1) {
+		float CurrentComboTime = GetWorldTimerManager().GetTimerRemaining(ComboResetHandle);
+		PlayerHUDWidget->SetComboBarPercent(CurrentComboTime / MaxComboTime);
 	}
 }
 

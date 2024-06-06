@@ -34,8 +34,14 @@ protected:
 public:
 	void SetAmmoCounter(uint8 CurrentAmmo);
 
-	void SetAmmoCounterVisibility(ESlateVisibility Visiblity);
+	void SetAmmoCounterVisibility(ESlateVisibility V);
 
 	void SetAdrenalineBarPercent(float MaxHealth);
+
+	void SetComboBarPercent(float Percent);
+
+	void SetComboCounterVisibility(ESlateVisibility V);
+
+	void SetComboCounterText(uint8 Combo);
 	
 };
