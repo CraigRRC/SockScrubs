@@ -202,6 +202,10 @@ protected:
 	void DrainLife(bool ShouldDrainLife, float DeltaTime);
 	bool ShouldDrainHealth{ false };
 
+	void GainLife(float HealthRecovery);
+
+	class AAdrenGameMode* GameMode{};
+
 	FTimerHandle KickTimerHandle{};
 
 	class ABaseWeapon* EquippedWeapon {};

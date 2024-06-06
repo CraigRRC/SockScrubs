@@ -74,7 +74,6 @@ float ABaseEnemy::ConvertHealthToPercent(){
 }
 
 void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
-	GEngine->AddOnScreenDebugMessage(9, 1.f, FColor::Magenta, "EnemyDamaged", false);
 	if (Stun) {
 		EnemyState = EEnemyState::Stunned;
 		EnemyStateDelegate.ExecuteIfBound();
@@ -84,13 +83,11 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer)
 		HealthWidget->SetHealthPercent(ConvertHealthToPercent());
 	}
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
-	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("HP: %.2f"), ClampedHealth));
 	if (ClampedHealth <= 0.f) {
 		EnemyState = EEnemyState::Dead;
+		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyStateDelegate.ExecuteIfBound();
 	}
-	
-
 }
 
 void ABaseEnemy::SwitchState(){

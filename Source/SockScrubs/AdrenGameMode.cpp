@@ -4,6 +4,8 @@
 #include "AdrenGameMode.h"
 #include "BeginRunWidget.h"
 #include "AdrenCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "BaseEnemy.h"
 
 AAdrenGameMode::AAdrenGameMode(){
 	PrimaryActorTick.bCanEverTick = true;
@@ -25,8 +27,13 @@ void AAdrenGameMode::Destroyed(){
 	}
 }
 
+void AAdrenGameMode::EnemyEliminated(ABaseEnemy* Enemy, float HealthRegain){
+	GEngine->AddOnScreenDebugMessage(6, 3.f, FColor::Green, "Worked", false);
+	Enemy->EnemyEliminatedDelegate.Unbind();
+	GainAdrenalineDelegate.ExecuteIfBound(HealthRegain);
+}
+
 void AAdrenGameMode::StartRun() {
-	UE_LOG(LogTemp, Warning, TEXT("Run"));
 	BeginRunWidget->RemoveFromParent();
 	GetWorld()->GetFirstPlayerController()->SetPause(false);
 }
@@ -40,6 +47,12 @@ void AAdrenGameMode::Tick(float DeltaTime){
 	else if (Player && DoOnce) {
 		AddStartRunWidgetToScreen();
 		BindStartRunDelegate();
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), EnemyClass, EnemyArray);
+		for (AActor* Enemy : EnemyArray) {
+			ABaseEnemy* TempEnemy = Cast<ABaseEnemy>(Enemy);
+			TempEnemy->EnemyEliminatedDelegate.BindUObject(this, &AAdrenGameMode::EnemyEliminated);
+		}
+
 		DoOnce = false;
 	}
 }

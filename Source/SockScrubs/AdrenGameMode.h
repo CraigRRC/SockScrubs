@@ -9,6 +9,9 @@
 /**
  * 
  */
+
+DECLARE_DELEGATE_OneParam(GainAdrenalineDelegate, float)
+
 UCLASS()
 class SOCKSCRUBS_API AAdrenGameMode : public AGameModeBase
 {
@@ -18,6 +21,8 @@ class SOCKSCRUBS_API AAdrenGameMode : public AGameModeBase
 public:
 
 	AAdrenGameMode();
+
+	GainAdrenalineDelegate GainAdrenalineDelegate{};
 
 	UFUNCTION()
 	void StartRun();
@@ -44,6 +49,14 @@ protected:
 	class UBeginRunWidget* BeginRunWidget{};
 
 	class AAdrenCharacter* Player{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Enemy)
+	TSubclassOf<class AActor> EnemyClass{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Enemy)
+	TArray<class AActor*> EnemyArray{};
+
+	void EnemyEliminated(class ABaseEnemy* Enemy, float HealthRegain);
 	
 
 	

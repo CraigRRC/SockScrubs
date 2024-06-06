@@ -14,6 +14,7 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerHUDWidget.h"
+#include "AdrenGameMode.h"
 
 
 // Sets default values
@@ -49,6 +50,9 @@ void AAdrenCharacter::BeginPlay()
 	HUDWidget->AddToPlayerScreen();
 	HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Hidden);
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(Health));
+	AGameModeBase* BaseGameMode = UGameplayStatics::GetGameMode(GetWorld());
+	GameMode = Cast<AAdrenGameMode>(BaseGameMode);
+	GameMode->GainAdrenalineDelegate.BindUObject(this, &AAdrenCharacter::GainLife);
 }
 
 void AAdrenCharacter::Destroyed()
@@ -56,6 +60,9 @@ void AAdrenCharacter::Destroyed()
 	Super::Destroyed();
 	if (MovementStateDelegate.IsBound()) {
 		MovementStateDelegate.Unbind();
+	}
+	if (GameMode->GainAdrenalineDelegate.IsBound()) {
+		GameMode->GainAdrenalineDelegate.Unbind();
 	}
 }
 
@@ -328,6 +335,10 @@ void AAdrenCharacter::DrainLife(bool ShouldDrainLife, float DeltaTime){
 			PlayerDie();
 		}
 	}
+}
+
+void AAdrenCharacter::GainLife(float HealthRecovery){
+	Health = FMath::Clamp(Health + HealthRecovery, 0, MaxHealth);
 }
 
 void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)

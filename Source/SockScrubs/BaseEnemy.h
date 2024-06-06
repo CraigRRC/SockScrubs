@@ -9,6 +9,8 @@
 
 DECLARE_DELEGATE(EnemyStateDelegate);
 DECLARE_DELEGATE(EnemyWeaponStateDelegate);
+DECLARE_DELEGATE_TwoParams(EnemyEliminatedDelegate, ABaseEnemy*, float);
+
 
 UENUM(Blueprintable)
 enum class EEnemyState : uint8 {
@@ -39,6 +41,8 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	EnemyEliminatedDelegate EnemyEliminatedDelegate{};
 
 
 protected:
