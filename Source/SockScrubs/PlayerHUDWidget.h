@@ -43,5 +43,9 @@ public:
 	void SetComboCounterVisibility(ESlateVisibility V);
 
 	void SetComboCounterText(uint8 Combo);
+
+	void SetRunTimerText(double time);
+
+	void SetRunTimerVisibility(ESlateVisibility V);
 	
 };

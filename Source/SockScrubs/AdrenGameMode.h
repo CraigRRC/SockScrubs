@@ -72,5 +72,9 @@ protected:
 
 	float MaxComboTime{ ComboTimer };
 
+	double RunTimer{};
+
+	bool bRunStarted{ false };
+
 	
 };

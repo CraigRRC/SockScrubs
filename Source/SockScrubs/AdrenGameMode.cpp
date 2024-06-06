@@ -51,6 +51,8 @@ void AAdrenGameMode::ResetComboCount(){
 void AAdrenGameMode::StartRun() {
 	BeginRunWidget->RemoveFromParent();
 	GetWorld()->GetFirstPlayerController()->SetPause(false);
+	PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
+	bRunStarted = true;
 }
 
 void AAdrenGameMode::Tick(float DeltaTime){
@@ -70,6 +72,11 @@ void AAdrenGameMode::Tick(float DeltaTime){
 		}
 
 		DoOnce = false;
+	}
+
+	if (bRunStarted) {
+		RunTimer = GetWorld()->GetTimeSeconds();
+		PlayerHUDWidget->SetRunTimerText(RunTimer);
 	}
 
 	if (CurrentCombo > 1) {
