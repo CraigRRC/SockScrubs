@@ -32,12 +32,16 @@ void AAdrenGameMode::EnemyEliminated(ABaseEnemy* Enemy, float HealthRegain){
 	Enemy->EnemyEliminatedDelegate.Unbind();
 	GainAdrenalineDelegate.ExecuteIfBound(HealthRegain);
 	CurrentCombo++;
+	EnemiesRemainingInLevel--;
 	if (CurrentCombo > HighestCombo) {
 		HighestCombo = CurrentCombo;
 	}
 	if (CurrentCombo > 1) {
 		PlayerHUDWidget->SetComboCounterVisibility(ESlateVisibility::Visible);
 		PlayerHUDWidget->SetComboCounterText(CurrentCombo);
+	}
+	if (HighestCombo == NumEnemiesInLevel) {
+		UltraCombo = true;
 	}
 	GetWorldTimerManager().SetTimer(ComboResetHandle, this, &AAdrenGameMode::ResetComboCount, ComboTimer, false);
 
@@ -70,6 +74,8 @@ void AAdrenGameMode::Tick(float DeltaTime){
 			ABaseEnemy* TempEnemy = Cast<ABaseEnemy>(Enemy);
 			TempEnemy->EnemyEliminatedDelegate.BindUObject(this, &AAdrenGameMode::EnemyEliminated);
 		}
+		NumEnemiesInLevel = EnemyArray.Num();
+		EnemiesRemainingInLevel = EnemyArray.Num();
 
 		DoOnce = false;
 	}

@@ -36,12 +36,6 @@ void UPlayerHUDWidget::SetComboCounterText(uint8 Combo){
 }
 
 void UPlayerHUDWidget::SetRunTimerText(double time){
-
-	uint8 Minutes = static_cast<uint8>(time / 60);
-	uint8 Seconds = static_cast<uint8>(time) % 60;
-	uint8 Milliseconds = static_cast<uint8>(time - FMath::FloorToInt(time * 1000.f));
-
-	//FString TimerString = FString::Printf(TEXT("%02d:%02d.%03d"), Minutes, Seconds, Milliseconds);
 	FString TimerString = UKismetStringLibrary::TimeSecondsToString(time);
 	FText TimerText = FText::FromString(TimerString);
 	Timer->SetText(TimerText);

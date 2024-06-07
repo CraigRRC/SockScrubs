@@ -39,6 +39,8 @@ public:
 
 	bool DoOnce{ true };
 
+	void ResetComboCount();
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -60,11 +62,22 @@ protected:
 
 	void EnemyEliminated(class ABaseEnemy* Enemy, float HealthRegain);
 
-	void ResetComboCount();
+	
 
+	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	uint8 CurrentCombo{};
 
+	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	uint8 HighestCombo{};
+
+	UPROPERTY(BlueprintReadOnly, Category = Stats)
+	uint8 NumEnemiesInLevel{};
+
+	UPROPERTY(BlueprintReadOnly, Category = Stats)
+	uint8 EnemiesRemainingInLevel{}; 
+
+	UPROPERTY(BlueprintReadOnly, Category = Stats)
+	bool UltraCombo{ false };
 	
 	FTimerHandle ComboResetHandle{};
 
@@ -72,6 +85,7 @@ protected:
 
 	float MaxComboTime{ ComboTimer };
 
+	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	double RunTimer{};
 
 	bool bRunStarted{ false };

@@ -65,7 +65,7 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 	FHitResult Hit{};
 	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera);
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), GunSound, GetActorLocation());
-	DrawDebugLine(GetWorld(), Start, End, FColor::Blue, true);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 0.5f);
 	if (Hit.bBlockingHit) {
 		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
 		if (HitActorHasInterface) {

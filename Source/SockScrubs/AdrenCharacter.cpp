@@ -53,6 +53,7 @@ void AAdrenCharacter::BeginPlay()
 	AGameModeBase* BaseGameMode = UGameplayStatics::GetGameMode(GetWorld());
 	GameMode = Cast<AAdrenGameMode>(BaseGameMode);
 	GameMode->GainAdrenalineDelegate.BindUObject(this, &AAdrenCharacter::GainLife);
+	StopCrouching();
 }
 
 void AAdrenCharacter::Destroyed()
@@ -204,7 +205,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
-	GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "PlayerDamaged", false);
+	GameMode->ResetComboCount();
 	Health -= DamageDelta;
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
