@@ -4,7 +4,6 @@
 #include "BaseEnemy.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
-#include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "AdrenCharacter.h"
@@ -21,20 +20,16 @@ ABaseEnemy::ABaseEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
-	TempBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	TempBodyMesh->SetupAttachment(Root);
-	TempBodyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	BodyHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("BodyHitbox"));
 	BodyHitbox->SetupAttachment(Root);
 	BodyHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
 	HeadHitbox = CreateDefaultSubobject<USphereComponent>(TEXT("HeadHitbox"));
 	HeadHitbox->SetupAttachment(Root);
 	HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
-	TempHeadMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HeadMesh"));
-	TempHeadMesh->SetupAttachment(Root);
-	TempHeadMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	TempGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
-	TempGunMesh->SetupAttachment(Root);
+	EnemyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EnemyMesh"));
+	EnemyMesh->SetupAttachment(Root);
+	EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	HealthWidgetComponent->SetupAttachment(Root);
 	HealthWidgetComponent->SetVisibility(false);
@@ -42,6 +37,7 @@ ABaseEnemy::ABaseEnemy()
 	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawn"));
 	ProjectileSpawnPoint->SetupAttachment(TempGunMesh);
+	
 }
 
 // Called when the game starts or when spawned
@@ -146,6 +142,7 @@ void ABaseEnemy::SwitchState(){
 
 void ABaseEnemy::DropEquippedWeapon()
 {
+	if (!WeaponToSpawnWhenDropped) return;
 	ABaseWeapon* SpawnedWeapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponToSpawnWhenDropped, TempGunMesh->GetComponentTransform());
 	//Simulate physics on the rifle
 	SpawnedWeapon->GetGunMesh()->SetSimulatePhysics(true);

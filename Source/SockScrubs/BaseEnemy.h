@@ -114,6 +114,9 @@ protected:
 	class USkeletalMeshComponent* TempGunMesh{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	class USkeletalMeshComponent* EnemyMesh{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class USceneComponent* ProjectileSpawnPoint{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
@@ -131,7 +134,7 @@ protected:
 	void Fire_Implementation();
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyAttributes")
-	float RateOfFire{ 1.5f };
+	float RateOfFire{ 0.8f };
 
 	FTimerHandle FireHandle{};
 
