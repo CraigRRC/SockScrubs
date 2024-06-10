@@ -113,13 +113,11 @@ void ABaseEnemy::SwitchState(){
 	switch (EnemyState)
 	{
 	case EEnemyState::Ready:
-		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Ready");
 		HealthWidgetComponent->SetVisibility(false);
 		HealthWidgetComponent->SetComponentTickEnabled(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Activated:
-		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Activated");
 		HealthWidgetComponent->SetVisibility(false);
 		HealthWidgetComponent->SetComponentTickEnabled(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
@@ -128,7 +126,6 @@ void ABaseEnemy::SwitchState(){
 		if (GetWorldTimerManager().IsTimerActive(DistHandle)) {
 			GetWorldTimerManager().ClearTimer(DistHandle);
 		}
-		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Combat");
 		HealthWidgetComponent->SetComponentTickEnabled(true);
 		HealthWidgetComponent->SetVisibility(true);
 		EnemyMesh->SetNotifyRigidBodyCollision(true);
@@ -218,10 +215,9 @@ void ABaseEnemy::LookAtPlayer(){
 	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 150.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 150.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::None, HitResults, true);
 	for (FHitResult const &hit : HitResults) {
 		if (hit.bBlockingHit) {
-			GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Yellow, hit.GetActor()->GetName());
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
 				SeenPlayer = Cast<AAdrenCharacter>(hit.GetActor());
 			}
@@ -243,8 +239,7 @@ void ABaseEnemy::CalcDistBtwnPlayer(){
 	FVector PlayerLocation = Player->GetActorLocation();
 	FVector Target = PlayerLocation - GetActorLocation();
 	double DistanceToTarget = Target.SizeSquared2D();
-	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), DistanceToTarget), false);
-	DrawDebugLine(GetWorld(), GetActorLocation(), PlayerLocation, FColor::Red);
+	//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), DistanceToTarget), false);
 
 	if (DistanceToTarget < ActivationRadius) {
 		EnemyState = EEnemyState::Activated;
@@ -268,8 +263,6 @@ void ABaseEnemy::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 			DamageTaken(false, 20.f, this, FVector::ZeroVector, NAME_None, false, false, false);
 			GetWorldTimerManager().SetTimer(EnemySlammedIntoWallHandle, this, &ABaseEnemy::AllowEnemyToCollide, 0.1f, false);
 			CollideOnce = false;
-			GEngine->AddOnScreenDebugMessage(2, 4.f, FColor::Emerald, "Here", false);
-			
 		}
 	}
 }
