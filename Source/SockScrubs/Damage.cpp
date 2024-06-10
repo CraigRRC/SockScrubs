@@ -5,6 +5,6 @@
 
 // Add default functionality here for any IDamage functions that are not pure virtual.
 
-void IDamage::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
+void IDamage::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 
 }

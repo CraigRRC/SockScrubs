@@ -33,7 +33,13 @@ ABaseWeapon::ABaseWeapon()
 void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	SetLifeTimer();
 	
+}
+
+void ABaseWeapon::SetLifeTimer()
+{
+	GetWorldTimerManager().SetTimer(LifeTimeHandle, this, &ABaseWeapon::CleanUp, 10.f, false);
 }
 
 
@@ -41,7 +47,7 @@ void ABaseWeapon::BeginPlay()
 void ABaseWeapon::OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (HitActor && DoOnce) {
-		HitActor->DamageTaken(true, ThrownDamage, this);
+		HitActor->DamageTaken(true, ThrownDamage, this, FVector::ZeroVector, NAME_None, true);
 		DoOnce = false;
 		FTimerHandle DoOnceHandle{};
 		GetWorldTimerManager().SetTimer(DoOnceHandle, this, &ABaseWeapon::ResetDoOnce, 1.f, false);
@@ -70,21 +76,26 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
 		if (HitActorHasInterface) {
 			USphereComponent* Head = Cast<USphereComponent>(Hit.GetComponent());
-			UBoxComponent* Bodyshot = Cast<UBoxComponent>(Hit.GetComponent());
 			if (Head) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "HeadShot", false);
 				FirePower = 100.f;
+				HitActorHasInterface->DamageTaken(false, FirePower, OwningActor, Hit.ImpactPoint, Hit.BoneName, true);
 			}
-			else if (Bodyshot) {
+			else{
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "Bodyshot", false);
 				FirePower = 20.f;
+				HitActorHasInterface->DamageTaken(false, FirePower, OwningActor, Hit.ImpactPoint, Hit.BoneName);
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
-			HitActorHasInterface->DamageTaken(false, FirePower, OwningActor);
+			
 		}
 	}
 	
 	
 	
+}
+
+void ABaseWeapon::CleanUp(){
+	Destroy();
 }
 

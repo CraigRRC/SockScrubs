@@ -65,7 +65,17 @@ protected:
 	class UEnemyHealthWidget* HealthWidget{};
 
 	UFUNCTION()
-	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer);
+	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked);
+
+	FTimerHandle DeathTimer{};
+
+	FTimerHandle EnemySlammedIntoWallHandle{};
+
+	void AllowEnemyToCollide();
+
+	bool CollideOnce{ true };
+
+	void CleanUp();
 
 	UFUNCTION()
 	void SwitchState();
@@ -143,6 +153,9 @@ protected:
 
 	UPROPERTY()
 	class AAdrenCharacter* SeenPlayer{};
+
+	UFUNCTION()
+	void OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 
 public:

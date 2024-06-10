@@ -44,6 +44,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireAsLineTrace(FVector Start, FVector End);
 
+	FTimerHandle LifeTimeHandle{};
+
+	void CleanUp();
+
+	void SetLifeTimer();
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -99,6 +106,7 @@ public:
 	FORCEINLINE float GetFireRate() { return FireRate; }
 	FORCEINLINE TSubclassOf<class UCameraShakeBase> GetCameraShakeBase() { return GunCameraShake; }
 	FORCEINLINE void SetOwningActor(AActor* Actor) { OwningActor = Actor; }
+	FORCEINLINE void ResetLifeTime() { GetWorldTimerManager().ClearTimer(LifeTimeHandle); }
 };
 
 

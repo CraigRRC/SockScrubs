@@ -23,5 +23,5 @@ class SOCKSCRUBS_API IDamage
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	UFUNCTION(BlueprintCallable, Category = "Damage")
-	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer);
+	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint = FVector(0, 0, 0), FName BoneName = NAME_None, bool Headshot = false, bool Tripped = false, bool Kicked = false);
 };

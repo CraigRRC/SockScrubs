@@ -53,7 +53,6 @@ void AAdrenCharacter::BeginPlay()
 	AGameModeBase* BaseGameMode = UGameplayStatics::GetGameMode(GetWorld());
 	GameMode = Cast<AAdrenGameMode>(BaseGameMode);
 	GameMode->GainAdrenalineDelegate.BindUObject(this, &AAdrenCharacter::GainLife);
-	StopCrouching();
 }
 
 void AAdrenCharacter::Destroyed()
@@ -62,10 +61,14 @@ void AAdrenCharacter::Destroyed()
 	if (MovementStateDelegate.IsBound()) {
 		MovementStateDelegate.Unbind();
 	}
-	if (GameMode->GainAdrenalineDelegate.IsBound()) {
-		GameMode->GainAdrenalineDelegate.Unbind();
+	if (GameMode != nullptr) {
+		if (GameMode->GainAdrenalineDelegate.IsBound()) {
+			GameMode->GainAdrenalineDelegate.Unbind();
+		}
 	}
 }
+
+
 
 
 void AAdrenCharacter::UpdateMovementState()
@@ -139,6 +142,7 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 			EquippedWeapon->GetGunMesh()->CastShadow = false;
 			EquippedWeapon->GetPickupCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			EquippedWeapon->GetStunCollider()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			EquippedWeapon->ResetLifeTime();
 			Ammo = EquippedWeapon->GetClipSize();
 			if (HUDWidget) {
 				HUDWidget->SetAmmoCounter(Ammo);
@@ -204,7 +208,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
 }
 
-void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
+void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	GameMode->ResetComboCount();
 	Health -= DamageDelta;
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
@@ -235,6 +239,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 		HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Hidden);
 	}
 	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	EquippedWeapon->SetLifeTimer();
 	//Simulate physics on it if not already simulating
 	EquippedWeapon->GetGunMesh()->SetSimulatePhysics(true);
 	//Tell the anim instance that we don't have a weapon.
@@ -271,7 +276,8 @@ void AAdrenCharacter::StartRun(){
 	if (AdrenPlayerController->IsPaused() && !RunStarted) {
 		StartRunDelegate.ExecuteIfBound();
 		SetRunStarted(true);
-		ShouldDrainHealth = true;
+		//ShouldDrainHealth = true;
+		StopCrouching();
 	}
 }
 
@@ -309,9 +315,23 @@ void AAdrenCharacter::StopKicking(){
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
-	if (HitActor) {
-		HitActor->DamageTaken(true, KickDamage, this);
+	if (KickOnce && HitActor) {
+		if (MovementState == EPlayerMovementState::Sliding) {
+			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, true);
+		}
+		else {
+			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
+		}
+
+		KickOnce = false;
+		FTimerHandle CanKickAgainHandle{};
+		GetWorldTimerManager().SetTimer(CanKickAgainHandle, this, &AAdrenCharacter::KickAgain, 0.2f, false);
+		
 	}
+}
+
+void AAdrenCharacter::KickAgain() {
+	KickOnce = true;
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){

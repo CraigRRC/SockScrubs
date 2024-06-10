@@ -12,11 +12,12 @@
 DECLARE_DELEGATE(MovementDelegate);
 DECLARE_DELEGATE(StartRunDelegate);
 
+UENUM(Blueprintable)
 enum EPlayerMovementState : uint8 {
-	Running,
-	Crouching,
-	Sliding,
-	WallRunning,
+	Running UMETA(DisplayName = "Running"),
+	Crouching UMETA(DisplayName = "Crouching"),
+	Sliding UMETA(DisplayName = "Sliding"),
+	WallRunning UMETA(DisplayName = "WallRunning"),
 };
 
 UENUM(Blueprintable)
@@ -52,7 +53,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer) override;
+	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) override;
 
 	void PlayerDie();
 
@@ -65,12 +66,13 @@ protected:
 
 	virtual void Destroyed() override;
 
+	bool KickOnce{ true };
 	
+	void KickAgain();
 
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
-
-	enum EPlayerMovementState MovementState {};
+	EPlayerMovementState MovementState {EPlayerMovementState::Running};
 
 	UPROPERTY(BlueprintReadOnly, Category = Anims)
 	EPlayerWeaponState PlayerWeaponStatus{ EPlayerWeaponState::Unarmed };
@@ -200,6 +202,8 @@ protected:
 	float CrouchedCapsuleHalfHeight{};
 
 	void DrainLife(bool ShouldDrainLife, float DeltaTime);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	bool ShouldDrainHealth{ false };
 
 	void GainLife(float HealthRecovery);

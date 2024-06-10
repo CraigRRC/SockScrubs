@@ -20,18 +20,18 @@ ABaseEnemy::ABaseEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
-	BodyHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("BodyHitbox"));
-	BodyHitbox->SetupAttachment(Root);
-	BodyHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
-	HeadHitbox = CreateDefaultSubobject<USphereComponent>(TEXT("HeadHitbox"));
-	HeadHitbox->SetupAttachment(Root);
-	HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
-	TempGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	EnemyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EnemyMesh"));
 	EnemyMesh->SetupAttachment(Root);
-	EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
+	//BodyHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("BodyHitbox"));
+	//BodyHitbox->SetupAttachment(EnemyMesh);
+	//BodyHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
+	HeadHitbox = CreateDefaultSubobject<USphereComponent>(TEXT("HeadHitbox"));
+	HeadHitbox->SetupAttachment(EnemyMesh);
+	HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Block);
+	TempGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
-	HealthWidgetComponent->SetupAttachment(Root);
+	HealthWidgetComponent->SetupAttachment(EnemyMesh);
 	HealthWidgetComponent->SetVisibility(false);
 	HealthWidgetComponent->SetComponentTickEnabled(false);
 	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -45,6 +45,7 @@ void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	EnemyStateDelegate.BindUObject(this, &ABaseEnemy::SwitchState);
+	EnemyMesh->OnComponentHit.AddDynamic(this, &ABaseEnemy::OnBodyHit);
 	EnemyWeaponStateDelegate.BindUObject(this, &ABaseEnemy::SwitchWeaponState);
 	if (GetWorld() && UGameplayStatics::GetPlayerCharacter(GetWorld(), 0) != nullptr) {
 		Player = CastChecked<AAdrenCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
@@ -69,7 +70,8 @@ float ABaseEnemy::ConvertHealthToPercent(){
 	return Health / MaxHealth;
 }
 
-void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer){
+void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
+	if (EnemyState == EEnemyState::Dead) return;
 	if (Stun) {
 		EnemyState = EEnemyState::Stunned;
 		EnemyStateDelegate.ExecuteIfBound();
@@ -78,13 +80,34 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer)
 	if (HealthWidget) {
 		HealthWidget->SetHealthPercent(ConvertHealthToPercent());
 	}
+
+	if (Tripped) {
+		EnemyMesh->SetSimulatePhysics(true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("RightLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
+	}
+
+	if (Kicked) {
+		EnemyMesh->SetSimulatePhysics(true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 50000.f, FName("Spine"), true);
+	}
+	
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
 	if (ClampedHealth <= 0.f) {
 		EnemyState = EEnemyState::Dead;
 		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyStateDelegate.ExecuteIfBound();
+		if (!Headshot) {
+			EnemyMesh->SetSimulatePhysics(true);
+			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, BoneName, true);
+		}
+	}
+	if (Headshot) {
+		EnemyMesh->SetSimulatePhysics(true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * FMath::FRandRange(1000.f, 10000.f), FName("Head"), true);
 	}
 }
+
 
 void ABaseEnemy::SwitchState(){
 	switch (EnemyState)
@@ -93,11 +116,13 @@ void ABaseEnemy::SwitchState(){
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Ready");
 		HealthWidgetComponent->SetVisibility(false);
 		HealthWidgetComponent->SetComponentTickEnabled(false);
+		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Activated:
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Activated");
 		HealthWidgetComponent->SetVisibility(false);
 		HealthWidgetComponent->SetComponentTickEnabled(false);
+		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Combat:
 		if (GetWorldTimerManager().IsTimerActive(DistHandle)) {
@@ -106,6 +131,7 @@ void ABaseEnemy::SwitchState(){
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Black, "Combat");
 		HealthWidgetComponent->SetComponentTickEnabled(true);
 		HealthWidgetComponent->SetVisibility(true);
+		EnemyMesh->SetNotifyRigidBodyCollision(true);
 		break;
 	case EEnemyState::Stunned:
 		if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
@@ -127,17 +153,35 @@ void ABaseEnemy::SwitchState(){
 		GetWorldTimerManager().SetTimer(StunDuration, this, &ABaseEnemy::ReturnFromStunState, 4.f, false);
 		break;
 	case EEnemyState::Dead:
+		TempGunMesh->SetVisibility(false);
+		HealthWidgetComponent->SetVisibility(false);
+		EnemyMesh->SetNotifyRigidBodyCollision(false);
+		EnemyMesh->PutAllRigidBodiesToSleep();
+		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		GetWorldTimerManager().ClearAllTimersForObject(this);
-		DropEquippedWeapon();
+		if (EnemyWeaponState == EEnemyWeaponState::Armed) {
+			DropEquippedWeapon();
+		}
 		//Create Timer
 		//Play Sound
-		//Tell UI that i am no longer living
-		Destroy();
+		if (!GetWorldTimerManager().IsTimerActive(DeathTimer)) {
+			GetWorldTimerManager().SetTimer(DeathTimer, this, &ABaseEnemy::CleanUp, 15.f, false);
+		}
+		
 		break;
 		
 	default:
 		break;
 	}
+}
+
+void ABaseEnemy::AllowEnemyToCollide(){
+	CollideOnce = true;
+}
+
+void ABaseEnemy::CleanUp(){
+	Destroy();
 }
 
 void ABaseEnemy::DropEquippedWeapon()
@@ -216,11 +260,28 @@ void ABaseEnemy::Fire_Implementation(){
 
 }
 
+void ABaseEnemy::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit){
+	if (EnemyState == EEnemyState::Dead) return;
+	if (!CollideOnce) return;
+	if (EnemyMesh->IsAnySimulatingPhysics()) {
+		if (EnemyMesh->GetComponentVelocity().SquaredLength() >= 40000.f && EnemyMesh->GetComponentVelocity().SquaredLength() <= 90000.f) {
+			DamageTaken(false, 20.f, this, FVector::ZeroVector, NAME_None, false, false, false);
+			GetWorldTimerManager().SetTimer(EnemySlammedIntoWallHandle, this, &ABaseEnemy::AllowEnemyToCollide, 0.1f, false);
+			CollideOnce = false;
+			GEngine->AddOnScreenDebugMessage(2, 4.f, FColor::Emerald, "Here", false);
+			
+		}
+	}
+}
+
 // Called every frame
 void ABaseEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	if (EnemyMesh->IsAnySimulatingPhysics()) {
+		EnemyMesh->AddForce(FVector::DownVector * 5000.f, NAME_None, true);
+	}
 
 	switch (EnemyState)
 	{
