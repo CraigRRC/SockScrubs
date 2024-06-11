@@ -242,6 +242,26 @@ void ABaseEnemy::LookAtPlayer(){
 void ABaseEnemy::RotateTowardPlayer(){
 	if (Player == nullptr) return;
 	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation()));
+
+	//// Calculate the desired look-at rotation
+	//FRotator DesiredRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation());
+
+	//// Interpolate rotation using Lerp or InterpEaseInOut
+	//InterpTime += DeltaTime;
+	//float Alpha = FMath::Clamp(InterpTime / InterpDuration, 0.0f, 1.0f);
+
+	//FRotator CurrentRotation = GetActorRotation();
+	//FRotator NewRotation = FMath::Lerp(CurrentRotation, DesiredRotation, Alpha); // For linear interpolation
+	//// FRotator NewRotation = FMath::InterpEaseInOut(CurrentRotation, DesiredRotation, Alpha, 2.0f); // For ease in out interpolation
+
+	//SetActorRotation(NewRotation);
+
+	//// Reset InterpTime if desired rotation is reached
+	//if (Alpha >= 1.0f)
+	//{
+	//	InterpTime = 0.0f;
+	//}
+	
 }
 
 void ABaseEnemy::CalcDistBtwnPlayer(){
