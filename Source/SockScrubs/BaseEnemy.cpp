@@ -165,7 +165,8 @@ void ABaseEnemy::SwitchState(){
 		EnemyMesh->PutAllRigidBodiesToSleep();
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-		UGameplayStatics::PlaySound2D(GetWorld(), DeathSounds[FMath::RandRange(0, DeathSounds.Num() - 1)], 10.0f, FMath::FRandRange(0.8, 1));
+		//This is for the memes.
+		//UGameplayStatics::PlaySound2D(GetWorld(), DeathSounds[FMath::RandRange(0, DeathSounds.Num() - 1)], 10.0f, FMath::FRandRange(0.8, 1));
 		GetWorldTimerManager().ClearAllTimersForObject(this);
 		if (EnemyWeaponState == EEnemyWeaponState::Armed) {
 			DropEquippedWeapon();
