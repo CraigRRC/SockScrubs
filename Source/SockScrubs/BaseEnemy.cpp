@@ -96,17 +96,19 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
 	if (ClampedHealth <= 0.f) {
 		EnemyState = EEnemyState::Dead;
-		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyStateDelegate.ExecuteIfBound();
+		
 		if (!Headshot) {
 			if (HeadshotTing) {
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 0.5f);
 			}
+			EnemyEliminatedDelegate.Execute(this, 2.f);
 			EnemyMesh->SetSimulatePhysics(true);
 			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
 		}
 	}
 	if (Headshot) {
+		EnemyEliminatedDelegate.Execute(this, 3.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * FMath::FRandRange(1000.f, 10000.f), FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {

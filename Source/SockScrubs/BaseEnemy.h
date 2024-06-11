@@ -154,7 +154,7 @@ protected:
 	void Fire_Implementation();
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyAttributes")
-	float RateOfFire{ 0.8f };
+	float RateOfFire{ 1.0f };
 
 	FTimerHandle FireHandle{};
 
