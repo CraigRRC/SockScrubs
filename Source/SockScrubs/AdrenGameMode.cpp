@@ -68,6 +68,9 @@ void AAdrenGameMode::Tick(float DeltaTime){
 	else if (Player && DoOnce) {
 		PlayerHUDWidget = Player->HUDWidget;
 		AddStartRunWidgetToScreen();
+		if (StartRunSound) {
+			UGameplayStatics::PlaySound2D(GetWorld(), StartRunSound);
+		}
 		BindStartRunDelegate();
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), EnemyClass, EnemyArray);
 		for (AActor* Enemy : EnemyArray) {

@@ -50,6 +50,8 @@ public:
 
 	void SetLifeTimer();
 
+	void PlayPickupSound();
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -78,6 +80,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	USoundBase* GunSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	USoundBase* PickupSound{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	TSubclassOf<UCameraShakeBase> GunCameraShake{};

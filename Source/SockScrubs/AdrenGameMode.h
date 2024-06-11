@@ -54,6 +54,9 @@ protected:
 
 	class AAdrenCharacter* Player{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* StartRunSound{};
+
 	UPROPERTY(EditDefaultsOnly, Category = Enemy)
 	TSubclassOf<class AActor> EnemyClass{};
 
@@ -61,8 +64,6 @@ protected:
 	TArray<class AActor*> EnemyArray{};
 
 	void EnemyEliminated(class ABaseEnemy* Enemy, float HealthRegain);
-
-	
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	uint8 CurrentCombo{};

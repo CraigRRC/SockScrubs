@@ -58,6 +58,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	EEnemyState EnemyState{ EEnemyState::Ready };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	USoundBase* HeadshotTing{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	TArray<USoundBase*> DeathSounds{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	USoundAttenuation* HeadshotAttenuation{};
+
+
 	EEnemyWeaponState EnemyWeaponState{ EEnemyWeaponState::Armed };
 
 	float ConvertHealthToPercent();
@@ -154,8 +164,8 @@ protected:
 	UPROPERTY()
 	class AAdrenCharacter* SeenPlayer{};
 
-	UFUNCTION()
-	void OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	/*UFUNCTION()
+	void OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);*/
 
 
 public:

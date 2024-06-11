@@ -34,6 +34,7 @@ void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	SetLifeTimer();
+	StunCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 }
 
@@ -42,16 +43,20 @@ void ABaseWeapon::SetLifeTimer()
 	GetWorldTimerManager().SetTimer(LifeTimeHandle, this, &ABaseWeapon::CleanUp, 10.f, false);
 }
 
+void ABaseWeapon::PlayPickupSound(){
+	if (!PickupSound) return;
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation());
+}
+
 
 
 void ABaseWeapon::OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (HitActor && DoOnce) {
-		HitActor->DamageTaken(true, ThrownDamage, this, FVector::ZeroVector, NAME_None, true);
+		HitActor->DamageTaken(true, ThrownDamage, this);
 		DoOnce = false;
 		FTimerHandle DoOnceHandle{};
 		GetWorldTimerManager().SetTimer(DoOnceHandle, this, &ABaseWeapon::ResetDoOnce, 1.f, false);
-		
 	}
 }
 

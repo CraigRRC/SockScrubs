@@ -45,7 +45,7 @@ void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	EnemyStateDelegate.BindUObject(this, &ABaseEnemy::SwitchState);
-	EnemyMesh->OnComponentHit.AddDynamic(this, &ABaseEnemy::OnBodyHit);
+	//EnemyMesh->OnComponentHit.AddDynamic(this, &ABaseEnemy::OnBodyHit);
 	EnemyWeaponStateDelegate.BindUObject(this, &ABaseEnemy::SwitchWeaponState);
 	if (GetWorld() && UGameplayStatics::GetPlayerCharacter(GetWorld(), 0) != nullptr) {
 		Player = CastChecked<AAdrenCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
@@ -75,6 +75,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 	if (Stun) {
 		EnemyState = EEnemyState::Stunned;
 		EnemyStateDelegate.ExecuteIfBound();
+		EnemyMesh->SetSimulatePhysics(true);
 	}
 	Health -= DamageDelta;
 	if (HealthWidget) {
@@ -98,13 +99,19 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyStateDelegate.ExecuteIfBound();
 		if (!Headshot) {
+			if (HeadshotTing) {
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 0.5f);
+			}
 			EnemyMesh->SetSimulatePhysics(true);
-			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, BoneName, true);
+			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
 		}
 	}
 	if (Headshot) {
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * FMath::FRandRange(1000.f, 10000.f), FName("Head"), true);
+		if (HeadshotTing && HeadshotAttenuation) {
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 1.0f, 0.0f, HeadshotAttenuation);
+		}
 	}
 }
 
@@ -156,6 +163,7 @@ void ABaseEnemy::SwitchState(){
 		EnemyMesh->PutAllRigidBodiesToSleep();
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		UGameplayStatics::PlaySound2D(GetWorld(), DeathSounds[FMath::RandRange(0, DeathSounds.Num() - 1)], 10.0f, FMath::FRandRange(0.8, 1));
 		GetWorldTimerManager().ClearAllTimersForObject(this);
 		if (EnemyWeaponState == EEnemyWeaponState::Armed) {
 			DropEquippedWeapon();
@@ -255,17 +263,18 @@ void ABaseEnemy::Fire_Implementation(){
 
 }
 
-void ABaseEnemy::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit){
-	if (EnemyState == EEnemyState::Dead) return;
-	if (!CollideOnce) return;
-	if (EnemyMesh->IsAnySimulatingPhysics()) {
-		if (EnemyMesh->GetComponentVelocity().SquaredLength() >= 40000.f && EnemyMesh->GetComponentVelocity().SquaredLength() <= 90000.f) {
-			DamageTaken(false, 20.f, this, FVector::ZeroVector, NAME_None, false, false, false);
-			GetWorldTimerManager().SetTimer(EnemySlammedIntoWallHandle, this, &ABaseEnemy::AllowEnemyToCollide, 0.1f, false);
-			CollideOnce = false;
-		}
-	}
-}
+//Buggy 
+//void ABaseEnemy::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit){
+//	if (EnemyState == EEnemyState::Dead) return;
+//	if (!CollideOnce) return;
+//	if (EnemyMesh->IsAnySimulatingPhysics()) {
+//		if (EnemyMesh->GetComponentVelocity().SquaredLength() >= 90000.f && EnemyMesh->GetComponentVelocity().SquaredLength() <= 120000.f) {
+//			DamageTaken(false, 20.f, this, FVector::ZeroVector, NAME_None, false, false, false);
+//			GetWorldTimerManager().SetTimer(EnemySlammedIntoWallHandle, this, &ABaseEnemy::AllowEnemyToCollide, 0.1f, false);
+//			CollideOnce = false;
+//		}
+//	}
+//}
 
 // Called every frame
 void ABaseEnemy::Tick(float DeltaTime)
@@ -318,6 +327,5 @@ void ABaseEnemy::Tick(float DeltaTime)
 void ABaseEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 

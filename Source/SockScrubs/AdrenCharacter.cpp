@@ -128,6 +128,7 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 	if(Weapon != nullptr){
 		EquippedWeapon = Cast<ABaseWeapon>(Weapon);
 		EquippedWeapon->SetOwningActor(this);
+		EquippedWeapon->PlayPickupSound();
 		if (HUDWidget) {
 			HUDWidget->SetAmmoCounterVisibility(ESlateVisibility::Visible);
 		}
@@ -276,7 +277,7 @@ void AAdrenCharacter::StartRun(){
 	if (AdrenPlayerController->IsPaused() && !RunStarted) {
 		StartRunDelegate.ExecuteIfBound();
 		SetRunStarted(true);
-		//ShouldDrainHealth = true;
+		ShouldDrainHealth = true;
 		StopCrouching();
 	}
 }
