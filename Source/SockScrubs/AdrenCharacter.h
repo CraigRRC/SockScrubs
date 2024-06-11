@@ -17,6 +17,7 @@ enum EPlayerMovementState : uint8 {
 	Running UMETA(DisplayName = "Running"),
 	Crouching UMETA(DisplayName = "Crouching"),
 	Sliding UMETA(DisplayName = "Sliding"),
+	Dashing UMETA(DisplayName = "Dashing"),
 	WallRunning UMETA(DisplayName = "WallRunning"),
 };
 
@@ -178,6 +179,8 @@ protected:
 	void EnableKickHitbox();
 
 	void StopKicking();
+
+	void EndDash();
 
 	UFUNCTION()
 	void OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

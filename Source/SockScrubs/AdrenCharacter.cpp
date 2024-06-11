@@ -73,7 +73,7 @@ void AAdrenCharacter::Destroyed()
 
 void AAdrenCharacter::UpdateMovementState()
 {
-	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, "Updated");
+	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, "Updated");
 	switch (MovementState)
 	{
 	case Running:
@@ -87,6 +87,10 @@ void AAdrenCharacter::UpdateMovementState()
 		StopKicking();
 		break;
 	case Sliding:
+		PlayerMovementComp->GroundFriction = 0.f;
+		EnableKickHitbox();
+		break;
+	case Dashing:
 		PlayerMovementComp->GroundFriction = 0.f;
 		EnableKickHitbox();
 		break;
@@ -107,7 +111,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	DrainLife(ShouldDrainHealth, DeltaTime);
 
 	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
-	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > 400000.f && PlayerMovementComp->IsMovingOnGround()) {
+	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > 200000.f && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
 	}
 
@@ -160,7 +164,7 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 
 void AAdrenCharacter::StartSlide()
 {
-	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
+	FVector SlideImpulse = GetVelocity().GetClampedToMaxSize2D(1100.f) * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
 	MovementState = EPlayerMovementState::Sliding;
 	CamManager->StartCameraShake(SlideCameraShake->CameraShake, 1.0f);
@@ -296,12 +300,20 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 
 }
 
-void AAdrenCharacter::Kick(const FInputActionInstance& Instance){
+void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	EnableKickHitbox();
+	if (!PlayerMovementComp->IsMovingOnGround()) {
+		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * 200000.f);
+		MovementState = EPlayerMovementState::Dashing;
+		MovementStateDelegate.ExecuteIfBound();
+		FTimerHandle EndDashHandle{};
+		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, 0.2f, false);
+	}
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, 0.2f, false);
 }
+	
 
 void AAdrenCharacter::EnableKickHitbox(){
 	KickHitbox->bHiddenInGame = false;
@@ -312,6 +324,11 @@ void AAdrenCharacter::StopKicking(){
 	KickHitbox->bHiddenInGame = true;
 	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Stop Kicking", false);
+}
+
+void AAdrenCharacter::EndDash(){
+	MovementState = EPlayerMovementState::Running;
+	MovementStateDelegate.ExecuteIfBound();
 }
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
