@@ -110,6 +110,10 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	DrainLife(ShouldDrainHealth, DeltaTime);
 
+	if (PlayerMovementComp->IsMovingOnGround()) {
+		bCanDash = true;
+	}
+
 	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > 200000.f && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
@@ -303,11 +307,12 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	EnableKickHitbox();
-	if (!PlayerMovementComp->IsMovingOnGround()) {
+	if (!PlayerMovementComp->IsMovingOnGround() && bCanDash) {
 		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * 200000.f);
 		MovementState = EPlayerMovementState::Dashing;
 		MovementStateDelegate.ExecuteIfBound();
 		FTimerHandle EndDashHandle{};
+		bCanDash = false;
 		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, 0.2f, false);
 	}
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);

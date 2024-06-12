@@ -182,6 +182,8 @@ protected:
 
 	void EndDash();
 
+	bool bCanDash{ true };
+
 	UFUNCTION()
 	void OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
