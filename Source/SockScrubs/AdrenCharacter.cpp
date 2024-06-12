@@ -229,6 +229,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
 	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
 	Input->BindAction(IA_ActivateSloMo, ETriggerEvent::Triggered, this, &AAdrenCharacter::ActivateSloMo);
+	Input->BindAction(IA_Restart, ETriggerEvent::Triggered, this, &AAdrenCharacter::PlayerDie);
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {

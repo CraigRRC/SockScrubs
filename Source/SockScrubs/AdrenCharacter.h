@@ -114,6 +114,9 @@ protected:
 	class UInputAction* IA_StartRun{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Restart{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class AAdrenPlayerController* AdrenPlayerController{};
 
 	UFUNCTION()
