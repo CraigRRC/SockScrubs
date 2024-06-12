@@ -114,7 +114,8 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		bCanDash = true;
 	}
 
-	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
+
+	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %d"), MovementState));
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
 	}
@@ -313,7 +314,7 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 		MovementStateDelegate.ExecuteIfBound();
 		FTimerHandle EndDashHandle{};
 		bCanDash = false;
-		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, 0.2f, false);
+		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, 0.05f, false);
 	}
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, 0.2f, false);
@@ -332,8 +333,7 @@ void AAdrenCharacter::StopKicking(){
 }
 
 void AAdrenCharacter::EndDash(){
-	MovementState = EPlayerMovementState::Running;
-	MovementStateDelegate.ExecuteIfBound();
+	StopCrouching();
 }
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){

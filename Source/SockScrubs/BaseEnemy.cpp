@@ -105,13 +105,13 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			if (HeadshotTing) {
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 0.5f);
 			}
-			EnemyEliminatedDelegate.Execute(this, 2.f);
+			EnemyEliminatedDelegate.Execute(this, 3.f);
 			EnemyMesh->SetSimulatePhysics(true);
 			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
 		}
 	}
 	if (Headshot) {
-		EnemyEliminatedDelegate.Execute(this, 3.f);
+		EnemyEliminatedDelegate.Execute(this, 5.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * FMath::FRandRange(1000.f, 10000.f), FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
@@ -309,7 +309,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 		RotateTowardPlayer();
 		LookAtPlayer();
 		if (!GetWorldTimerManager().IsTimerActive(FireHandle)) {
-			GetWorldTimerManager().SetTimer(FireHandle, this, &ABaseEnemy::Fire, RateOfFire, false);
+			GetWorldTimerManager().SetTimer(FireHandle, this, &ABaseEnemy::Fire, FMath::FRandRange(RateOfFire, RateOfFire + 1.0f), false);
 		}
 		if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
 			if (GetWorldTimerManager().GetTimerRemaining(FireHandle) <= 0.6) {
