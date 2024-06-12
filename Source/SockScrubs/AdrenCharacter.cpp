@@ -36,6 +36,7 @@ AAdrenCharacter::AAdrenCharacter()
 	KickHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
 	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
+	PlayerCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("PlayerCameraShakeSource"));
 	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
 }
 
@@ -225,6 +226,12 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
 		PlayerDie();
+	}
+	else {
+		if (PlayerCameraShake->CameraShake) {
+			CamManager->StartCameraShake(PlayerCameraShake->CameraShake, 1.0f);
+		}
+		
 	}
 }
 

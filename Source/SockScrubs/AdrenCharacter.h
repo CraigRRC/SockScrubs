@@ -170,6 +170,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	class UCameraShakeSourceComponent* FireCameraShake{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
+	class UCameraShakeSourceComponent* PlayerCameraShake{};
+
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
 
