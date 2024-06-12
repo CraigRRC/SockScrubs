@@ -12,6 +12,7 @@
 #include "BaseWeapon.h"
 #include "Components/WidgetComponent.h"
 #include "EnemyHealthWidget.h"
+#include "Components/PointLightComponent.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
@@ -35,6 +36,8 @@ ABaseEnemy::ABaseEnemy()
 	HealthWidgetComponent->SetVisibility(false);
 	HealthWidgetComponent->SetComponentTickEnabled(false);
 	TempGunMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	IntentionHint = CreateDefaultSubobject<UPointLightComponent>(TEXT("EyeGlare"));
+	IntentionHint->SetupAttachment(EnemyMesh);
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawn"));
 	ProjectileSpawnPoint->SetupAttachment(TempGunMesh);
 	
@@ -241,27 +244,7 @@ void ABaseEnemy::LookAtPlayer(){
 
 void ABaseEnemy::RotateTowardPlayer(){
 	if (Player == nullptr) return;
-	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation()));
-
-	//// Calculate the desired look-at rotation
-	//FRotator DesiredRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation());
-
-	//// Interpolate rotation using Lerp or InterpEaseInOut
-	//InterpTime += DeltaTime;
-	//float Alpha = FMath::Clamp(InterpTime / InterpDuration, 0.0f, 1.0f);
-
-	//FRotator CurrentRotation = GetActorRotation();
-	//FRotator NewRotation = FMath::Lerp(CurrentRotation, DesiredRotation, Alpha); // For linear interpolation
-	//// FRotator NewRotation = FMath::InterpEaseInOut(CurrentRotation, DesiredRotation, Alpha, 2.0f); // For ease in out interpolation
-
-	//SetActorRotation(NewRotation);
-
-	//// Reset InterpTime if desired rotation is reached
-	//if (Alpha >= 1.0f)
-	//{
-	//	InterpTime = 0.0f;
-	//}
-	
+	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation() + FVector::UpVector * 25.f));
 }
 
 void ABaseEnemy::CalcDistBtwnPlayer(){
@@ -328,6 +311,15 @@ void ABaseEnemy::Tick(float DeltaTime)
 		if (!GetWorldTimerManager().IsTimerActive(FireHandle)) {
 			GetWorldTimerManager().SetTimer(FireHandle, this, &ABaseEnemy::Fire, RateOfFire, false);
 		}
+		if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
+			if (GetWorldTimerManager().GetTimerRemaining(FireHandle) <= 0.6) {
+				IntentionHint->SetIntensity(GetWorldTimerManager().GetTimerElapsed(FireHandle));
+			}
+			else {
+				IntentionHint->SetIntensity(0);
+			}
+		}
+		
 		break;
 	case EEnemyState::Stunned:
 		break;

@@ -82,7 +82,7 @@ void AAdrenCharacter::UpdateMovementState()
 		StopKicking();
 		break;
 	case Crouching:
-		MaxPlayerSpeed = 500.f;
+		MaxPlayerSpeed = 300.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		StopKicking();
 		break;
@@ -115,14 +115,14 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 
 	//GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %f"), GetVelocity().SquaredLength()));
-	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > 200000.f && PlayerMovementComp->IsMovingOnGround()) {
+	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
 	}
 
 	if (MovementState == EPlayerMovementState::Sliding) {
 		CalcFloorInfluence();
 		//Check if the velocity is greater than our crouch max speed squared.
-		if (GetVelocity().SquaredLength() < 250000.f) {
+		if (GetVelocity().SquaredLength() < CrouchSpeedSquared) {
 			StopCrouching();
 			CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
 		}
@@ -168,7 +168,7 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 
 void AAdrenCharacter::StartSlide()
 {
-	FVector SlideImpulse = GetVelocity().GetClampedToMaxSize2D(1100.f) * SlideImpulseForce;
+	FVector SlideImpulse = GetVelocity().GetClampedToMaxSize2D(1000.f) * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
 	MovementState = EPlayerMovementState::Sliding;
 	CamManager->StartCameraShake(SlideCameraShake->CameraShake, 1.0f);

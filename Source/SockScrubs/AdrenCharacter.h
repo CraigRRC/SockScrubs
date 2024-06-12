@@ -223,6 +223,9 @@ protected:
 	float KickDamage{ 40.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
+	float CrouchSpeedSquared{ 250000.f };
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float Health{ 10.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)

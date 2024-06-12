@@ -44,6 +44,8 @@ public:
 
 	EnemyEliminatedDelegate EnemyEliminatedDelegate{};
 
+	float InterpTime{};
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -54,6 +56,9 @@ protected:
 	EnemyStateDelegate EnemyStateDelegate{};
 
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	class UPointLightComponent* IntentionHint{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	EEnemyState EnemyState{ EEnemyState::Ready };
@@ -156,6 +161,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyAttributes")
 	float RateOfFire{ 1.0f };
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EnemyAttributes")
 	FTimerHandle FireHandle{};
 
 	UPROPERTY()
