@@ -31,12 +31,17 @@ protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UProgressBar* ComboBar{};
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UProgressBar* SloMoBar{};
+
 public:
 	void SetAmmoCounter(uint8 CurrentAmmo);
 
 	void SetAmmoCounterVisibility(ESlateVisibility V);
 
 	void SetAdrenalineBarPercent(float MaxHealth);
+
+	void SetSloMoBarPercent(float Percent);
 
 	void SetComboBarPercent(float Percent);
 

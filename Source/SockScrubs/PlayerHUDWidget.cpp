@@ -20,6 +20,10 @@ void UPlayerHUDWidget::SetAdrenalineBarPercent(float HealthAsPercent){
 	AdrenalineBar->SetPercent(HealthAsPercent);
 }
 
+void UPlayerHUDWidget::SetSloMoBarPercent(float Percent){
+	SloMoBar->SetPercent(Percent);
+}
+
 void UPlayerHUDWidget::SetComboBarPercent(float Percent){
 	ComboBar->SetPercent(Percent);
 }

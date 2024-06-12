@@ -117,6 +117,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	
 	if (bSloMo) {
 		SloMo = FMath::Clamp(SloMo - DeltaTime, 0, SloMo);
+		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
 		if (SloMo == 0.f) {
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 			CustomTimeDilation = 1.0f;
@@ -413,6 +414,7 @@ void AAdrenCharacter::GainLife(float HealthRecovery){
 	Health = FMath::Clamp(Health + HealthRecovery, 0, MaxHealth);
 	if (bCanGenerateSloMo) {
 		SloMo = FMath::Clamp(SloMo + 0.5f, 0, MaxSloMo);
+		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
 	}
 	
 }
