@@ -114,8 +114,18 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	if (PlayerMovementComp->IsMovingOnGround()) {
 		bCanDash = true;
 	}
+	
+	if (bSloMo) {
+		SloMo = FMath::Clamp(SloMo - DeltaTime, 0, SloMo);
+		if (SloMo == 0.f) {
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
+			CustomTimeDilation = 1.0f;
+			bCanGenerateSloMo = true;
+			bSloMo = false;
+		}
+	}
 
-
+	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, FString::Printf(TEXT("SloMo: %f"), SloMo));
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %d"), MovementState));
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
@@ -217,6 +227,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
 	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
 	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
+	Input->BindAction(IA_ActivateSloMo, ETriggerEvent::Triggered, this, &AAdrenCharacter::ActivateSloMo);
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
@@ -312,6 +323,16 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 
 }
 
+void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
+	if (SloMo != MaxSloMo) return;
+	bSloMo = true;
+	bCanGenerateSloMo = false;
+	
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.5f);
+	CustomTimeDilation = 1.2f;
+
+}
+
 void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	EnableKickHitbox();
@@ -390,6 +411,10 @@ void AAdrenCharacter::DrainLife(bool ShouldDrainLife, float DeltaTime){
 
 void AAdrenCharacter::GainLife(float HealthRecovery){
 	Health = FMath::Clamp(Health + HealthRecovery, 0, MaxHealth);
+	if (bCanGenerateSloMo) {
+		SloMo = FMath::Clamp(SloMo + 0.5f, 0, MaxSloMo);
+	}
+	
 }
 
 void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)

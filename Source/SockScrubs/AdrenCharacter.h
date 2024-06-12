@@ -177,6 +177,13 @@ protected:
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
 
 	UFUNCTION()
+	void ActivateSloMo(const struct FInputActionInstance& Instance);
+	
+	bool bSloMo{false};
+
+	bool bCanGenerateSloMo{true};
+
+	UFUNCTION()
 	void Kick(const struct FInputActionInstance& Instance);
 
 	void EnableKickHitbox();
@@ -189,8 +196,6 @@ protected:
 
 	UFUNCTION()
 	void OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	
 
 	UFUNCTION()
 	void FinishShootingFullAuto(const struct FInputActionInstance& Instance);
@@ -234,6 +239,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float MaxHealth{ Health };
 
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
+	float SloMo{ 0.f };
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
+	float MaxSloMo{ 2.f };
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraComponent* PlayerCam{};
 
@@ -249,6 +260,7 @@ public:
 	FORCEINLINE EPlayerMovementState GetPlayerMovementState() { return MovementState; }
 	FORCEINLINE void SetRunStarted(bool Delta) { RunStarted = Delta; }
 	FORCEINLINE float ConvertHealthToPercent(float CurrentHealth) { return CurrentHealth / MaxHealth; }
+	FORCEINLINE float ConvertSloMoToPercent(float Delta) { return Delta / MaxSloMo; }
 	
 };
 
