@@ -67,6 +67,8 @@ protected:
 
 	virtual void Destroyed() override;
 
+	virtual void Jump() override;
+
 	bool KickOnce{ true };
 	
 	void KickAgain();
@@ -74,6 +76,9 @@ protected:
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
 	EPlayerMovementState MovementState {EPlayerMovementState::Running};
+
+	FHitResult LeftOfPlayerHit{};
+	FHitResult RightOfPlayerHit{};
 
 	UPROPERTY(BlueprintReadOnly, Category = Anims)
 	EPlayerWeaponState PlayerWeaponStatus{ EPlayerWeaponState::Unarmed };
