@@ -67,6 +67,9 @@ protected:
 	USoundBase* HeadshotTing{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	USoundBase* GunShot{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	TArray<USoundBase*> DeathSounds{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
