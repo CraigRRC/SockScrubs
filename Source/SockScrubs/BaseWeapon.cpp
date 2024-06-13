@@ -90,7 +90,7 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			}
 			else{
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "Bodyshot", false);
-				FirePower = 20.f;
+				FirePower = 25.f;
 				HitActorHasInterface->DamageTaken(false, FirePower, OwningActor, Hit.ImpactPoint, Hit.BoneName);
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);

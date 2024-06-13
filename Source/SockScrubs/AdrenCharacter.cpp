@@ -116,9 +116,6 @@ void AAdrenCharacter::Jump(){
 			
 		}
 	}
-
-	
-	
 }
 
 void AAdrenCharacter::FellOffWall() {
@@ -491,10 +488,10 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 		}
 		if (MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
-			PlayerMovementComp->Velocity = GetVelocity() * 0.5; 
+			PlayerMovementComp->Velocity = GetVelocity() * 0.5f; 
 		}
 		if (MovementState == EPlayerMovementState::Sliding) {
-			PlayerMovementComp->Velocity = GetVelocity() * 0.8;
+			PlayerMovementComp->Velocity = GetVelocity() * 0.8f;
 		}
 		KickOnce = false;
 		FTimerHandle CanKickAgainHandle{};
