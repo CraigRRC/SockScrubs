@@ -244,7 +244,7 @@ void ABaseEnemy::LookAtPlayer(){
 
 void ABaseEnemy::RotateTowardPlayer(){
 	if (Player == nullptr) return;
-	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation() + FVector::UpVector * 25.f));
+	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 120.f, Player->GetActorLocation()));
 }
 
 void ABaseEnemy::CalcDistBtwnPlayer(){
