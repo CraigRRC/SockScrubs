@@ -135,27 +135,32 @@ void AAdrenCharacter::UpdateMovementState()
 		MaxPlayerSpeed = 950.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 2.5;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
 	case Crouching:
 		MaxPlayerSpeed = 300.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 2.5;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
 	case Sliding:
 		PlayerMovementComp->GroundFriction = 0.f;
 		PlayerMovementComp->GravityScale = 2.5;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		EnableKickHitbox();
 		break;
 	case Dashing:
 		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 2.5;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
 		EnableKickHitbox();
 		break;
 	case WallRunning:
 		PlayerMovementComp->GravityScale = 0;
 		PlayerMovementComp->Velocity.Z = 0;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		break;
 	default:
 		break;
