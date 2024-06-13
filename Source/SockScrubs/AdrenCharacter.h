@@ -60,6 +60,12 @@ public:
 
 	StartRunDelegate StartRunDelegate{};
 
+	FTimerHandle WallRunningHandle{};
+
+	float WallRunningDuration{ 2.f };
+	
+	void FellOffWall();
+
 
 protected:
 	//Overrides
