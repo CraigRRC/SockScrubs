@@ -162,6 +162,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Slide)
 	class UCameraShakeSourceComponent* SlideCameraShake{};
 
+	FHitResult CheckAboveHead{};
+
 	void CalcFloorInfluence();
 
 	void ClampSlideVelocity();

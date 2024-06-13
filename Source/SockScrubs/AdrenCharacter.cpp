@@ -169,7 +169,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrainLife(ShouldDrainHealth, DeltaTime);
+	//DrainLife(ShouldDrainHealth, DeltaTime);
 
 	if (PlayerMovementComp->IsMovingOnGround()) {
 		bCanDash = true;
@@ -555,9 +555,20 @@ void AAdrenCharacter::BeginCrouch()
 }
 
 void AAdrenCharacter::StopCrouching(){
-	MovementState = EPlayerMovementState::Running;
-	MovementStateDelegate.ExecuteIfBound();
-	PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
+	GetWorld()->LineTraceSingleByChannel(CheckAboveHead, GetActorLocation(),GetActorLocation() + GetActorUpVector() * CapsuleHalfHeight + 20.f, ECollisionChannel::ECC_Camera);
+	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorUpVector() * CapsuleHalfHeight, FColor::Orange, true);
+	if (!CheckAboveHead.bBlockingHit) {
+		MovementState = EPlayerMovementState::Running;
+		MovementStateDelegate.ExecuteIfBound();
+		PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
+	}
+	if (CheckAboveHead.bBlockingHit) {
+		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Magenta, CheckAboveHead.GetActor()->GetName());
+		if (MovementState == EPlayerMovementState::Sliding) {
+			BeginCrouch();
+		}
+	}
+	
 }
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
