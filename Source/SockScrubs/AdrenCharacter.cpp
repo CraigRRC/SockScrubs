@@ -149,7 +149,7 @@ void AAdrenCharacter::UpdateMovementState()
 		EnableKickHitbox();
 		break;
 	case Dashing:
-		PlayerMovementComp->GroundFriction = 0.f;
+		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 2.5;
 		EnableKickHitbox();
 		break;
@@ -226,10 +226,15 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		CalcFloorInfluence();
 		//Check if the velocity is greater than our crouch max speed squared.
 		if (GetVelocity().SquaredLength() < CrouchSpeedSquared) {
-			StopCrouching();
-			CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
+			StopSliding();
 		}
 	}
+}
+
+void AAdrenCharacter::StopSliding()
+{
+	StopCrouching();
+	CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
 }
 
 void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
@@ -271,7 +276,14 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 
 void AAdrenCharacter::StartSlide()
 {
-	FVector SlideImpulse = GetVelocity().GetClampedToMaxSize2D(600.f) * SlideImpulseForce;
+	if (GetVelocity().SquaredLength() > MaxSlideSpeed) {
+		SlideImpulseForce = 1;
+	}
+	else {
+		SlideImpulseForce = 300.f;
+	}
+
+	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
 	MovementState = EPlayerMovementState::Sliding;
 	CamManager->StartCameraShake(SlideCameraShake->CameraShake, 1.0f);
@@ -430,15 +442,21 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (MovementState == EPlayerMovementState::WallRunning) return;
 	EnableKickHitbox();
 	if (!PlayerMovementComp->IsMovingOnGround() && bCanDash) {
-		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * 170000.f);
+		if (GetVelocity().SquaredLength() > MaxSlideSpeed) {
+			DashImpulseForce = 1;
+		}
+		else {
+			DashImpulseForce = 170000.f;
+		}
+		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * DashImpulseForce);
 		MovementState = EPlayerMovementState::Dashing;
 		MovementStateDelegate.ExecuteIfBound();
 		FTimerHandle EndDashHandle{};
 		bCanDash = false;
-		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, 0.05f, false);
+		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, KickDuration, false);
 	}
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
-	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, 0.2f, false);
+	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, KickDuration, false);
 }
 	
 
@@ -466,10 +484,16 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 		else {
 			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
 		}
-
+		if (MovementState == EPlayerMovementState::Dashing) {
+			EndDash();
+			PlayerMovementComp->Velocity = GetVelocity() * 0.5; 
+		}
+		if (MovementState == EPlayerMovementState::Sliding) {
+			PlayerMovementComp->Velocity = GetVelocity() * 0.8;
+		}
 		KickOnce = false;
 		FTimerHandle CanKickAgainHandle{};
-		GetWorldTimerManager().SetTimer(CanKickAgainHandle, this, &AAdrenCharacter::KickAgain, 0.2f, false);
+		GetWorldTimerManager().SetTimer(CanKickAgainHandle, this, &AAdrenCharacter::KickAgain, KickDuration, false);
 		
 	}
 }

@@ -42,6 +42,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void StopSliding();
+
 	bool RunStarted{ false };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
@@ -65,6 +67,8 @@ public:
 	float WallRunningDuration{ 2.f };
 	
 	void FellOffWall();
+
+	float KickDuration{ 0.5f };
 
 
 protected:
@@ -166,7 +170,9 @@ protected:
 
 	float MaxSlideSpeed{ 10000000.f };
 
-	float SlideImpulseForce{ 250.f };
+	float SlideImpulseForce{ 300.f };
+
+	float DashImpulseForce{ 170000.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
@@ -242,7 +248,7 @@ protected:
 	class ABaseWeapon* EquippedWeapon {};
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float KickDamage{ 40.f };
+	float KickDamage{ 60.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float CrouchSpeedSquared{ 250000.f };
