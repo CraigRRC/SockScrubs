@@ -108,6 +108,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			else {
 				EnemyMesh->SetSimulatePhysics(true);
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+				EnemyEliminatedDelegate.Execute(this, 3.f);
 			}
 			
 			
