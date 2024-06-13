@@ -90,11 +90,6 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("RightLeg"), true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
 	}
-
-	if (Kicked) {
-		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 50000.f, FName("Spine"), true);
-	}
 	
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
 	if (ClampedHealth <= 0.f) {
@@ -105,15 +100,23 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			if (HeadshotTing) {
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 0.5f);
 			}
-			EnemyEliminatedDelegate.Execute(this, 3.f);
-			EnemyMesh->SetSimulatePhysics(true);
-			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+			if (Kicked) {
+				EnemyMesh->SetSimulatePhysics(true);
+				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
+				EnemyEliminatedDelegate.Execute(this, 3.f);
+			}
+			else {
+				EnemyMesh->SetSimulatePhysics(true);
+				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+			}
+			
+			
 		}
 	}
 	if (Headshot) {
 		EnemyEliminatedDelegate.Execute(this, 5.f);
 		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * FMath::FRandRange(1000.f, 10000.f), FName("Head"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 1.0f, 0.0f, HeadshotAttenuation);
 		}

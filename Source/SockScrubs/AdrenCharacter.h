@@ -250,7 +250,10 @@ protected:
 	class ABaseWeapon* EquippedWeapon {};
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float KickDamage{ 60.f };
+	float SlideKickDamage{ 60.f };
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
+	float KickDamage{ 100.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float CrouchSpeedSquared{ 250000.f };

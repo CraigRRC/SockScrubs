@@ -480,8 +480,8 @@ void AAdrenCharacter::EndDash(){
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (KickOnce && HitActor) {
-		if (MovementState == EPlayerMovementState::Sliding) {
-			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, true);
+		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {
+			HitActor->DamageTaken(true, SlideKickDamage, this, FVector::ZeroVector, NAME_None, false, true);
 		}
 		else {
 			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
