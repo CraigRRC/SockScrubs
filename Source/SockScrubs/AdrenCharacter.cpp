@@ -219,6 +219,15 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	if (bCanGenerateSloMo) {
+		//10 seconds
+		SloMo = FMath::Clamp(SloMo + DeltaTime / 5, 0, MaxSloMo);
+		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
+		if (SloMo == MaxSloMo) {
+			bCanGenerateSloMo = false;
+		}
+	}
+
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %d"), MovementState));
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
@@ -531,7 +540,7 @@ void AAdrenCharacter::DrainLife(bool ShouldDrainLife, float DeltaTime){
 void AAdrenCharacter::GainLife(float HealthRecovery){
 	Health = FMath::Clamp(Health + HealthRecovery, 0, MaxHealth);
 	if (bCanGenerateSloMo) {
-		SloMo = FMath::Clamp(SloMo + 0.5f, 0, MaxSloMo);
+		SloMo = FMath::Clamp(SloMo + 0.1f, 0, MaxSloMo);
 		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
 	}
 	
