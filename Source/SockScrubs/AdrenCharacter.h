@@ -68,7 +68,7 @@ public:
 	
 	void FellOffWall();
 
-	float KickDuration{ 0.5f };
+	float KickDuration{ 0.45f };
 
 
 protected:
@@ -166,11 +166,9 @@ protected:
 
 	void CalcFloorInfluence();
 
-	void ClampSlideVelocity();
-
 	float DownhillForce{ 400000.f };
 
-	float MaxSlideSpeed{ 10000000.f };
+	float MaxSpeed{ 7840000.f };
 
 	float SlideImpulseForce{ 300.f };
 
@@ -256,7 +254,7 @@ protected:
 	float KickDamage{ 100.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float CrouchSpeedSquared{ 250000.f };
+	float CrouchSpeedSquared{ 15000.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float Health{ 10.f };
