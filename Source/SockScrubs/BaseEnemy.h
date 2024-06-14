@@ -12,6 +12,7 @@ DECLARE_DELEGATE(EnemyWeaponStateDelegate);
 DECLARE_DELEGATE_TwoParams(EnemyEliminatedDelegate, ABaseEnemy*, float);
 
 
+
 UENUM(Blueprintable)
 enum class EEnemyState : uint8 {
 	Ready UMETA(DisplayName = "Ready"),

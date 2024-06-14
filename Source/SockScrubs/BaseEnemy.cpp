@@ -13,6 +13,7 @@
 #include "Components/WidgetComponent.h"
 #include "EnemyHealthWidget.h"
 #include "Components/PointLightComponent.h"
+#include "AdrenGameMode.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
@@ -47,6 +48,10 @@ ABaseEnemy::ABaseEnemy()
 void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	AAdrenGameMode* GameMode = Cast<AAdrenGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode) {
+		GameMode->BindEnemyEliminated(this);
+	}
 	EnemyStateDelegate.BindUObject(this, &ABaseEnemy::SwitchState);
 	//EnemyMesh->OnComponentHit.AddDynamic(this, &ABaseEnemy::OnBodyHit);
 	EnemyWeaponStateDelegate.BindUObject(this, &ABaseEnemy::SwitchWeaponState);
@@ -323,7 +328,6 @@ void ABaseEnemy::Tick(float DeltaTime)
 				IntentionHint->SetIntensity(0);
 			}
 		}
-		
 		break;
 	case EEnemyState::Stunned:
 		break;
@@ -338,8 +342,6 @@ void ABaseEnemy::Tick(float DeltaTime)
 		EnemyState = EEnemyState::Combat;
 		EnemyStateDelegate.ExecuteIfBound();
 	}
-
-	//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), GetWorldTimerManager().GetTimerRemaining(StunDuration)));
 }
 
 // Called to bind functionality to input

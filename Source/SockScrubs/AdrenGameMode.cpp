@@ -59,6 +59,10 @@ void AAdrenGameMode::StartRun() {
 	bRunStarted = true;
 }
 
+void AAdrenGameMode::BindEnemyEliminated(ABaseEnemy* Enemy){
+	Enemy->EnemyEliminatedDelegate.BindUObject(this, &AAdrenGameMode::EnemyEliminated);
+}
+
 void AAdrenGameMode::Tick(float DeltaTime){
 	if (!Player) {
 		if (!GetWorldTimerManager().IsTimerActive(FindPlayerHandle)) {
@@ -72,14 +76,6 @@ void AAdrenGameMode::Tick(float DeltaTime){
 			UGameplayStatics::PlaySound2D(GetWorld(), StartRunSound);
 		}
 		BindStartRunDelegate();
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), EnemyClass, EnemyArray);
-		for (AActor* Enemy : EnemyArray) {
-			ABaseEnemy* TempEnemy = Cast<ABaseEnemy>(Enemy);
-			TempEnemy->EnemyEliminatedDelegate.BindUObject(this, &AAdrenGameMode::EnemyEliminated);
-		}
-		NumEnemiesInLevel = EnemyArray.Num();
-		EnemiesRemainingInLevel = EnemyArray.Num();
-
 		DoOnce = false;
 	}
 

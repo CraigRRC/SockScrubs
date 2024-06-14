@@ -12,6 +12,11 @@
 
 DECLARE_DELEGATE_OneParam(GainAdrenalineDelegate, float)
 
+
+
+
+
+
 UCLASS()
 class SOCKSCRUBS_API AAdrenGameMode : public AGameModeBase
 {
@@ -23,9 +28,15 @@ public:
 	AAdrenGameMode();
 
 	GainAdrenalineDelegate GainAdrenalineDelegate{};
+	
+
+	UPROPERTY(BlueprintReadWrite)
+	bool CollectEnemies{ false };
 
 	UFUNCTION()
 	void StartRun();
+
+	void BindEnemyEliminated(class ABaseEnemy* Enemy);
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -71,11 +82,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	uint8 HighestCombo{};
 
-	UPROPERTY(BlueprintReadOnly, Category = Stats)
-	uint8 NumEnemiesInLevel{};
+	UPROPERTY(BlueprintReadWrite, Category = Stats)
+	uint8 NumEnemiesInLevel{34};
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
-	uint8 EnemiesRemainingInLevel{}; 
+	uint8 EnemiesRemainingInLevel{NumEnemiesInLevel}; 
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	bool UltraCombo{ false };
