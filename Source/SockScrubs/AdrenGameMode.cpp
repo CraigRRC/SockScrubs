@@ -32,7 +32,7 @@ void AAdrenGameMode::EnemyEliminated(ABaseEnemy* Enemy, float HealthRegain){
 	Enemy->EnemyEliminatedDelegate.Unbind();
 	GainAdrenalineDelegate.ExecuteIfBound(HealthRegain);
 	CurrentCombo++;
-	EnemiesRemainingInLevel--;
+	EnemiesRemainingInLevel = FMath::Clamp(EnemiesRemainingInLevel - 1, 0, NumEnemiesInLevel);
 	if (CurrentCombo > HighestCombo) {
 		HighestCombo = CurrentCombo;
 	}
