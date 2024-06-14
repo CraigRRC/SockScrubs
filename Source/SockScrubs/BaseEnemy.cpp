@@ -108,19 +108,19 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			if (Kicked) {
 				EnemyMesh->SetSimulatePhysics(true);
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
-				EnemyEliminatedDelegate.Execute(this, 3.f);
+				EnemyEliminatedDelegate.Execute(this, 2.f);
 			}
 			else {
 				EnemyMesh->SetSimulatePhysics(true);
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
-				EnemyEliminatedDelegate.Execute(this, 3.f);
+				EnemyEliminatedDelegate.Execute(this, 2.f);
 			}
 			
 			
 		}
 	}
 	if (Headshot) {
-		EnemyEliminatedDelegate.Execute(this, 5.f);
+		EnemyEliminatedDelegate.Execute(this, 3.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
@@ -238,7 +238,7 @@ void ABaseEnemy::LookAtPlayer(){
 	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 150.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::None, HitResults, true);
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 250.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
 	for (FHitResult const &hit : HitResults) {
 		if (hit.bBlockingHit) {
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
@@ -253,7 +253,7 @@ void ABaseEnemy::LookAtPlayer(){
 
 void ABaseEnemy::RotateTowardPlayer(){
 	if (Player == nullptr) return;
-	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 120.f, Player->GetActorLocation()));
+	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 140.f, Player->GetActorLocation()));
 }
 
 void ABaseEnemy::CalcDistBtwnPlayer(){
@@ -304,7 +304,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 	{
 	case EEnemyState::Ready:
 		if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
-			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 0.01f, false);
 		}
 		break;
 	case EEnemyState::Activated:
