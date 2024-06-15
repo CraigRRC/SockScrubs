@@ -172,7 +172,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//DrainLife(ShouldDrainHealth, DeltaTime);
+	DrainLife(ShouldDrainHealth, DeltaTime);
 
 	if (GetVelocity().SizeSquared2D() > MaxSpeed) {
 		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2800);
