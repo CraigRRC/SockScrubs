@@ -96,6 +96,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	float ThrownDamage{ 60.f };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	float BulletRadius{ 5.f };
+
 	bool DoOnce{ true };
 
 	void ResetDoOnce();

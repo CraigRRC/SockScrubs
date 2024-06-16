@@ -75,11 +75,11 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 	//auto test = GetWorld()->SpawnActor<AActor>(ProjectileToSpawn.Get(), Direction, Rotation);
 	FHitResult Hit{};
 	//GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera);
-	GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECollisionChannel::ECC_Camera, FCollisionShape::MakeSphere(10.f));
+	GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECollisionChannel::ECC_Camera, FCollisionShape::MakeSphere(BulletRadius));
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), GunSound, GetActorLocation());
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 0.5f);
 	if (Hit.bBlockingHit) {
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, 10.f, 10, FColor::Blue);
+		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, BulletRadius, 10, FColor::Blue);
 		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
 		if (HitActorHasInterface) {
 			USphereComponent* Head = Cast<USphereComponent>(Hit.GetComponent());

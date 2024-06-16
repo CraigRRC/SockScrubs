@@ -90,6 +90,9 @@ void AAdrenCharacter::Jump(){
 		MovementStateDelegate.ExecuteIfBound();
 	}
 	else {
+		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
+			StopCrouching();
+		}
 		Super::Jump();
 
 		if (!PlayerMovementComp->IsMovingOnGround()) {
@@ -137,7 +140,8 @@ void AAdrenCharacter::UpdateMovementState()
 		StopKicking();
 		break;
 	case Crouching:
-		MaxPlayerSpeed = 100.f;
+		MaxPlayerSpeed = 300.f;
+		CrouchSpeedSquared = MaxPlayerSpeed * MaxPlayerSpeed + 5.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 2.5;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
@@ -234,9 +238,9 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 
 	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Red, FString::Printf(TEXT("State: %d"), MovementState));
-	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
+	/*if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
-	}
+	}*/
 
 	if (MovementState == EPlayerMovementState::Sliding) {
 		CalcFloorInfluence();
@@ -322,7 +326,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AAdrenCharacter::Move);
 	Input->BindAction(IA_Jump, ETriggerEvent::Started, this, &AAdrenCharacter::Jump);
 	Input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
+	//Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Ongoing, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AAdrenCharacter::FinishShootingFullAuto);
@@ -333,6 +337,9 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
 	Input->BindAction(IA_ActivateSloMo, ETriggerEvent::Triggered, this, &AAdrenCharacter::ActivateSloMo);
 	Input->BindAction(IA_Restart, ETriggerEvent::Triggered, this, &AAdrenCharacter::PlayerDie);
+	Input->BindAction(IA_Slide, ETriggerEvent::Ongoing, this, &AAdrenCharacter::WantsToCrouch);
+	Input->BindAction(IA_Slide, ETriggerEvent::Canceled, this, &AAdrenCharacter::StopSliding);
+	Input->BindAction(IA_Slide, ETriggerEvent::Completed, this, &AAdrenCharacter::StopSliding);
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
@@ -536,8 +543,8 @@ void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
 		BeginCrouch();
 		
 	}
-	else {
-		StopCrouching();
+	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
+		StartSlide();
 	}
 }
 

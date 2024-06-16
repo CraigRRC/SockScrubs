@@ -132,6 +132,9 @@ protected:
 	class UInputAction* IA_Restart{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Slide{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class AAdrenPlayerController* AdrenPlayerController{};
 
 	UFUNCTION()
@@ -166,7 +169,7 @@ protected:
 
 	void CalcFloorInfluence();
 
-	float DownhillForce{ 400000.f };
+	float DownhillForce{ 380000.f };
 
 	float MaxSpeed{ 7840000.f };
 
