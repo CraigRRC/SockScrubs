@@ -97,7 +97,7 @@ protected:
 
 	void UpdateMovementState();
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = PlayerAttributes)
 	class UCharacterMovementComponent* PlayerMovementComp{};
 
 	//Input
