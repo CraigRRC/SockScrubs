@@ -171,7 +171,7 @@ protected:
 
 	float DownhillForce{ 380000.f };
 
-	float MaxSpeed{ 7840000.f };
+	float MaxSpeed{ 6250000.f };
 
 	float SlideImpulseForce{ 300.f };
 

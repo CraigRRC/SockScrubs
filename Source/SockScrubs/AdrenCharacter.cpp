@@ -78,12 +78,12 @@ void AAdrenCharacter::Jump(){
 		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 		if (LeftOfPlayerHit.bBlockingHit) {
 			
-			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 0.6) * 800.f , true);
+			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * 500.f , true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		}
 		if (RightOfPlayerHit.bBlockingHit) {
 
-			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 0.6) * 800.f, true);
+			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * 500.f, true);
 		}
 		
 		MovementState = EPlayerMovementState::Running;
@@ -101,19 +101,29 @@ void AAdrenCharacter::Jump(){
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * GetVelocity().GetClampedToMaxSize2D(500.f), true);
+				if (GetVelocity().Length() < MaxPlayerSpeed) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
+				}
+				else {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
+				}
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
-				PlayerMovementComp->AddImpulse(FVector::UpVector * 150.f, true);
+				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 				
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * GetVelocity().GetClampedToMaxSize2D(500.f), true);
+				if (GetVelocity().Length() < MaxPlayerSpeed) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
+				}
+				else {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
+				}
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
-				PlayerMovementComp->AddImpulse(FVector::UpVector * 150.f, true);
+				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 			}
 			
@@ -176,20 +186,20 @@ void AAdrenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrainLife(ShouldDrainHealth, DeltaTime);
+	//DrainLife(ShouldDrainHealth, DeltaTime);
 
 	if (GetVelocity().SizeSquared2D() > MaxSpeed) {
-		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2800);
+		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2500);
 	}
 
-	if (PlayerMovementComp->IsMovingOnGround()) {
+	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
 		bCanDash = true;
 	}
 	
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		if (GetWorldTimerManager().IsTimerActive(WallRunningHandle)) {
 			if (GetWorldTimerManager().GetTimerElapsed(WallRunningHandle) <= WallRunningDuration / 1.5) {
-				PlayerMovementComp->GravityScale = 0.2;
+				PlayerMovementComp->GravityScale = 0.3;
 			}
 		}
 
@@ -474,7 +484,10 @@ void AAdrenCharacter::StopKicking(){
 }
 
 void AAdrenCharacter::EndDash(){
-	StopCrouching();
+	if (MovementState == EPlayerMovementState::Crouching) {
+		StopCrouching();
+	}
+	
 }
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
