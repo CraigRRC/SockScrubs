@@ -34,7 +34,7 @@ protected:
 	class USlider* Slider{};
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* SensValue{};
+	class UEditableTextBox* SenValue{};
 
 	float Sens{1.0f};
 
@@ -45,6 +45,9 @@ public:
 
 	UFUNCTION()
 	void SetSensitivityValue();
+
+	UFUNCTION()
+	void FilterSensitivityText(const FText& Text, ETextCommit::Type CommitMethod);
 
 	UFUNCTION()
 	void Return();

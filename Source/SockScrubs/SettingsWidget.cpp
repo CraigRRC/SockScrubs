@@ -4,17 +4,18 @@
 #include "SettingsWidget.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/Slider.h"
-#include "Components/TextBlock.h"
+#include "Components/EditableTextBox.h"
 #include "Components/Button.h"
+
+
 
 void USettingsWidget::NativeConstruct(){
 	Super::NativeConstruct();
 	if (Slider) {
 		Slider->OnValueChanged.AddDynamic(this, &USettingsWidget::UpdateValueText);
-		if (SensValue) {
-			FString SliderString = FString::SanitizeFloat(Slider->GetValue());
-			FText SliderText = FText::FromString(SliderString);
-			SensValue->SetText(SliderText);
+		if (SenValue) {
+			UpdateValueText(Sens);
+			SenValue->OnTextCommitted.AddDynamic(this, &USettingsWidget::FilterSensitivityText);
 		}
 	}
 	if (ApplyButton) {
@@ -23,6 +24,8 @@ void USettingsWidget::NativeConstruct(){
 	if (ReturnButton) {
 		ReturnButton->OnClicked.AddDynamic(this, &USettingsWidget::Return);
 	}
+
+	
 
 }
 
@@ -35,6 +38,10 @@ void USettingsWidget::SetSensitivityValue(){
 	OnSensUpdatedDelegate.ExecuteIfBound(Sens);
 }
 
+void USettingsWidget::FilterSensitivityText(const FText& Text, ETextCommit::Type CommitMethod){
+	
+}
+
 void USettingsWidget::Return(){
 	RemoveFromParent();
 }
@@ -42,5 +49,5 @@ void USettingsWidget::Return(){
 void USettingsWidget::UpdateValueText(float Value){
 	FString SliderString = FString::SanitizeFloat(Value);
 	FText SliderText = FText::FromString(SliderString);
-	SensValue->SetText(SliderText);
+	SenValue->SetText(SliderText);
 }
