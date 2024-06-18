@@ -83,7 +83,7 @@ protected:
 	uint8 HighestCombo{};
 
 	UPROPERTY(BlueprintReadWrite, Category = Stats)
-	uint8 NumEnemiesInLevel{34};
+	uint8 NumEnemiesInLevel{38};
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	uint8 EnemiesRemainingInLevel{NumEnemiesInLevel}; 
