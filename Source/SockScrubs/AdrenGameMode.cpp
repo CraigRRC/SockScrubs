@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "BaseEnemy.h"
 #include "PlayerHUDWidget.h"
+#include "PauseWidget.h"
+#include "SettingsWidget.h"
 
 AAdrenGameMode::AAdrenGameMode(){
 	PrimaryActorTick.bCanEverTick = true;
@@ -25,7 +27,14 @@ void AAdrenGameMode::Destroyed(){
 	Super::Destroyed();
 	if (Player) {
 		Player->StartRunDelegate.Unbind();
+		Player->PauseGameDelegate.Unbind();
 	}
+	if (PauseWidget) {
+		if (PauseWidget->OpenSettingsWidgetDelegate.IsBoundToObject(this)) {
+			PauseWidget->OpenSettingsWidgetDelegate.Unbind();
+		}
+	}
+	
 }
 
 void AAdrenGameMode::EnemyEliminated(ABaseEnemy* Enemy, float HealthRegain){
@@ -52,11 +61,38 @@ void AAdrenGameMode::ResetComboCount(){
 	PlayerHUDWidget->SetComboCounterVisibility(ESlateVisibility::Hidden);
 }
 
+void AAdrenGameMode::PassSensitivityToPlayer(float Value){
+	OnSensUpdatedDelegate.ExecuteIfBound(Value);
+}
+
 void AAdrenGameMode::StartRun() {
 	BeginRunWidget->RemoveFromParent();
 	GetWorld()->GetFirstPlayerController()->SetPause(false);
 	PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
 	bRunStarted = true;
+}
+
+void AAdrenGameMode::PauseGame(){
+	if (PauseWidget != nullptr && GetWorld() != nullptr) {
+		FInputModeUIOnly UIOnly{};
+		PauseWidget->SetOwningPlayer(GetWorld()->GetFirstPlayerController());
+		PauseWidget->AddToPlayerScreen();
+		if (!PauseWidget->OpenSettingsWidgetDelegate.IsBoundToObject(this)) {
+			PauseWidget->OpenSettingsWidgetDelegate.BindUObject(this, &AAdrenGameMode::OpenSettings);
+		}
+		GetWorld()->GetFirstPlayerController()->SetPause(true);
+		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+		GetWorld()->GetFirstPlayerController()->SetInputMode(UIOnly);
+	}
+
+}
+
+void AAdrenGameMode::OpenSettings(){
+	if (SettingsWidget != nullptr && GetWorld() != nullptr) {
+		SettingsWidget->SetOwningPlayer(GetWorld()->GetFirstPlayerController());
+		SettingsWidget->AddToPlayerScreen();
+		SettingsWidget->OnSensUpdatedDelegate.BindUObject(this, &AAdrenGameMode::PassSensitivityToPlayer);
+	}
 }
 
 void AAdrenGameMode::BindEnemyEliminated(ABaseEnemy* Enemy){
@@ -76,6 +112,7 @@ void AAdrenGameMode::Tick(float DeltaTime){
 			UGameplayStatics::PlaySound2D(GetWorld(), StartRunSound);
 		}
 		BindStartRunDelegate();
+		Player->PauseGameDelegate.BindUObject(this, &AAdrenGameMode::PauseGame);
 		DoOnce = false;
 	}
 

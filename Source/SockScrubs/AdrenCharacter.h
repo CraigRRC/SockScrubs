@@ -11,6 +11,7 @@
 
 DECLARE_DELEGATE(MovementDelegate);
 DECLARE_DELEGATE(StartRunDelegate);
+DECLARE_DELEGATE(PauseGameDelegate);
 
 UENUM(Blueprintable)
 enum EPlayerMovementState : uint8 {
@@ -62,6 +63,8 @@ public:
 
 	StartRunDelegate StartRunDelegate{};
 
+	PauseGameDelegate PauseGameDelegate{};
+
 	FTimerHandle WallRunningHandle{};
 
 	float WallRunningDuration{ 2.f };
@@ -83,6 +86,11 @@ protected:
 	
 	void KickAgain();
 
+	float Sensitivity{ 1.0f };
+
+	UFUNCTION()
+	void UpdateSensitivity(float Value);
+
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
 	EPlayerMovementState MovementState {EPlayerMovementState::Running};
@@ -102,7 +110,7 @@ protected:
 
 	//Input
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IA_Crouch{};
+	class UInputAction* IA_Pause{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_Jump{};
@@ -150,7 +158,8 @@ protected:
 
 	void StartRun();
 
-	
+	UFUNCTION()
+	void PauseGame(const struct FInputActionInstance& Instance);
 
 
 	UFUNCTION()

@@ -12,9 +12,7 @@
 
 DECLARE_DELEGATE_OneParam(GainAdrenalineDelegate, float)
 
-
-
-
+DECLARE_DELEGATE_OneParam(OnSensUpdatedDelegate, float)
 
 
 UCLASS()
@@ -29,12 +27,19 @@ public:
 
 	GainAdrenalineDelegate GainAdrenalineDelegate{};
 	
+	OnSensUpdatedDelegate OnSensUpdatedDelegate{};
 
 	UPROPERTY(BlueprintReadWrite)
 	bool CollectEnemies{ false };
 
 	UFUNCTION()
 	void StartRun();
+
+	UFUNCTION()
+	void PauseGame();
+
+	UFUNCTION()
+	void OpenSettings();
 
 	void BindEnemyEliminated(class ABaseEnemy* Enemy);
 
@@ -52,6 +57,9 @@ public:
 
 	void ResetComboCount();
 
+	UFUNCTION()
+	void PassSensitivityToPlayer(float Value);
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -60,6 +68,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
 	class UBeginRunWidget* BeginRunWidget{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	class UPauseWidget* PauseWidget{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	class USettingsWidget* SettingsWidget{};
 
 	class UPlayerHUDWidget* PlayerHUDWidget{};
 

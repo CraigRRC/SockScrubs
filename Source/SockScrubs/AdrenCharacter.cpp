@@ -56,6 +56,8 @@ void AAdrenCharacter::BeginPlay()
 	AGameModeBase* BaseGameMode = UGameplayStatics::GetGameMode(GetWorld());
 	GameMode = Cast<AAdrenGameMode>(BaseGameMode);
 	GameMode->GainAdrenalineDelegate.BindUObject(this, &AAdrenCharacter::GainLife);
+	GameMode->OnSensUpdatedDelegate.BindUObject(this, &AAdrenCharacter::UpdateSensitivity);
+
 }
 
 void AAdrenCharacter::Destroyed()
@@ -336,7 +338,6 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AAdrenCharacter::Move);
 	Input->BindAction(IA_Jump, ETriggerEvent::Started, this, &AAdrenCharacter::Jump);
 	Input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	//Input->BindAction(IA_Crouch, ETriggerEvent::Triggered, this, &AAdrenCharacter::WantsToCrouch);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Ongoing, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AAdrenCharacter::ShootFullAuto);
 	Input->BindAction(IA_Shoot, ETriggerEvent::Canceled, this, &AAdrenCharacter::FinishShootingFullAuto);
@@ -350,6 +351,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Slide, ETriggerEvent::Ongoing, this, &AAdrenCharacter::WantsToCrouch);
 	Input->BindAction(IA_Slide, ETriggerEvent::Canceled, this, &AAdrenCharacter::StopSliding);
 	Input->BindAction(IA_Slide, ETriggerEvent::Completed, this, &AAdrenCharacter::StopSliding);
+	Input->BindAction(IA_Pause, ETriggerEvent::Triggered, this, &AAdrenCharacter::PauseGame);
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
@@ -378,8 +380,8 @@ void AAdrenCharacter::PlayerDie()
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
-	AddControllerYawInput(AxisValue2D.X);
-	AddControllerPitchInput(AxisValue2D.Y);
+	AddControllerYawInput(AxisValue2D.X * Sensitivity);
+	AddControllerPitchInput(AxisValue2D.Y * Sensitivity);
 }
 
 void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
@@ -429,6 +431,10 @@ void AAdrenCharacter::StartRun(){
 		ShouldDrainHealth = true;
 		StopCrouching();
 	}
+}
+
+void AAdrenCharacter::PauseGame(const struct FInputActionInstance& Instance){
+	PauseGameDelegate.ExecuteIfBound();
 }
 
 void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
@@ -515,6 +521,10 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 
 void AAdrenCharacter::KickAgain() {
 	KickOnce = true;
+}
+
+void AAdrenCharacter::UpdateSensitivity(float Value){
+	Sensitivity = Value;
 }
 
 void AAdrenCharacter::FinishShootingFullAuto(const FInputActionInstance& Instance){
