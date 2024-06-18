@@ -288,6 +288,7 @@ public:
 	FORCEINLINE float ConvertHealthToPercent(float CurrentHealth) { return CurrentHealth / MaxHealth; }
 	FORCEINLINE float ConvertSloMoToPercent(float Delta) { return Delta / MaxSloMo; }
 	
+	
 };
 
 

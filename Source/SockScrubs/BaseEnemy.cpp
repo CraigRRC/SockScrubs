@@ -108,19 +108,19 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			if (Kicked) {
 				EnemyMesh->SetSimulatePhysics(true);
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
-				EnemyEliminatedDelegate.Execute(this, 2.f);
+				EnemyEliminatedDelegate.Execute(this, 1.f);
 			}
 			else {
 				EnemyMesh->SetSimulatePhysics(true);
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
-				EnemyEliminatedDelegate.Execute(this, 2.f);
+				EnemyEliminatedDelegate.Execute(this, 1.f);
 			}
 			
 			
 		}
 	}
 	if (Headshot) {
-		EnemyEliminatedDelegate.Execute(this, 3.f);
+		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
@@ -238,7 +238,7 @@ void ABaseEnemy::LookAtPlayer(){
 	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 220.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 220.f, GetActorLocation() + FVector::UpVector * 220.f + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
 	for (FHitResult const &hit : HitResults) {
 		if (hit.bBlockingHit) {
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
