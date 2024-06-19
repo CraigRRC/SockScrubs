@@ -13,6 +13,7 @@
 #include "Components/WidgetComponent.h"
 #include "EnemyHealthWidget.h"
 #include "Components/PointLightComponent.h"
+#include "AdrenGameMode.h"
 
 // Sets default values
 ABaseEnemy::ABaseEnemy()
@@ -47,6 +48,10 @@ ABaseEnemy::ABaseEnemy()
 void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	AAdrenGameMode* GameMode = Cast<AAdrenGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode) {
+		GameMode->BindEnemyEliminated(this);
+	}
 	EnemyStateDelegate.BindUObject(this, &ABaseEnemy::SwitchState);
 	//EnemyMesh->OnComponentHit.AddDynamic(this, &ABaseEnemy::OnBodyHit);
 	EnemyWeaponStateDelegate.BindUObject(this, &ABaseEnemy::SwitchWeaponState);
@@ -90,11 +95,6 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("RightLeg"), true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
 	}
-
-	if (Kicked) {
-		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 50000.f, FName("Spine"), true);
-	}
 	
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
 	if (ClampedHealth <= 0.f) {
@@ -105,15 +105,24 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			if (HeadshotTing) {
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 0.5f);
 			}
-			EnemyEliminatedDelegate.Execute(this, 3.f);
-			EnemyMesh->SetSimulatePhysics(true);
-			EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+			if (Kicked) {
+				EnemyMesh->SetSimulatePhysics(true);
+				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
+				EnemyEliminatedDelegate.Execute(this, 1.f);
+			}
+			else {
+				EnemyMesh->SetSimulatePhysics(true);
+				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+				EnemyEliminatedDelegate.Execute(this, 1.f);
+			}
+			
+			
 		}
 	}
 	if (Headshot) {
-		EnemyEliminatedDelegate.Execute(this, 5.f);
+		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * FMath::FRandRange(1000.f, 10000.f), FName("Head"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 1.0f, 0.0f, HeadshotAttenuation);
 		}
@@ -229,7 +238,7 @@ void ABaseEnemy::LookAtPlayer(){
 	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 150.f, GetActorLocation() + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::None, HitResults, true);
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 220.f, GetActorLocation() + FVector::UpVector * 220.f + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::None, HitResults, true);
 	for (FHitResult const &hit : HitResults) {
 		if (hit.bBlockingHit) {
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
@@ -244,7 +253,7 @@ void ABaseEnemy::LookAtPlayer(){
 
 void ABaseEnemy::RotateTowardPlayer(){
 	if (Player == nullptr) return;
-	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 100.f, Player->GetActorLocation() + FVector::UpVector * 25.f));
+	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation() + FVector::UpVector * 140.f, Player->GetActorLocation()));
 }
 
 void ABaseEnemy::CalcDistBtwnPlayer(){
@@ -295,7 +304,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 	{
 	case EEnemyState::Ready:
 		if (!GetWorldTimerManager().IsTimerActive(DistHandle)) {
-			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 1.f, false);
+			GetWorldTimerManager().SetTimer(DistHandle, this, &ABaseEnemy::CalcDistBtwnPlayer, 0.01f, false);
 		}
 		break;
 	case EEnemyState::Activated:
@@ -319,7 +328,6 @@ void ABaseEnemy::Tick(float DeltaTime)
 				IntentionHint->SetIntensity(0);
 			}
 		}
-		
 		break;
 	case EEnemyState::Stunned:
 		break;
@@ -334,8 +342,6 @@ void ABaseEnemy::Tick(float DeltaTime)
 		EnemyState = EEnemyState::Combat;
 		EnemyStateDelegate.ExecuteIfBound();
 	}
-
-	//GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Black, FString::Printf(TEXT("Distance to Target: %.2f"), GetWorldTimerManager().GetTimerRemaining(StunDuration)));
 }
 
 // Called to bind functionality to input

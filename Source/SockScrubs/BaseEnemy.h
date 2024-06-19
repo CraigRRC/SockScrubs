@@ -12,6 +12,7 @@ DECLARE_DELEGATE(EnemyWeaponStateDelegate);
 DECLARE_DELEGATE_TwoParams(EnemyEliminatedDelegate, ABaseEnemy*, float);
 
 
+
 UENUM(Blueprintable)
 enum class EEnemyState : uint8 {
 	Ready UMETA(DisplayName = "Ready"),
@@ -111,7 +112,7 @@ protected:
 	FTimerHandle DistHandle{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
-	double ActivationRadius{ 16000000.0 };
+	double ActivationRadius{ 26000000.0 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	TSubclassOf<class ABaseWeapon> WeaponToSpawnWhenDropped{};

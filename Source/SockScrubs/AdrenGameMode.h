@@ -12,6 +12,9 @@
 
 DECLARE_DELEGATE_OneParam(GainAdrenalineDelegate, float)
 
+DECLARE_DELEGATE_OneParam(OnSensUpdatedDelegate, float)
+
+
 UCLASS()
 class SOCKSCRUBS_API AAdrenGameMode : public AGameModeBase
 {
@@ -23,9 +26,22 @@ public:
 	AAdrenGameMode();
 
 	GainAdrenalineDelegate GainAdrenalineDelegate{};
+	
+	OnSensUpdatedDelegate OnSensUpdatedDelegate{};
+
+	UPROPERTY(BlueprintReadWrite)
+	bool CollectEnemies{ false };
 
 	UFUNCTION()
 	void StartRun();
+
+	UFUNCTION()
+	void PauseGame();
+
+	UFUNCTION()
+	void OpenSettings();
+
+	void BindEnemyEliminated(class ABaseEnemy* Enemy);
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -41,6 +57,9 @@ public:
 
 	void ResetComboCount();
 
+	UFUNCTION()
+	void PassSensitivityToPlayer(float Value);
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -49,6 +68,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
 	class UBeginRunWidget* BeginRunWidget{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	class UPauseWidget* PauseWidget{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
+	class USettingsWidget* SettingsWidget{};
 
 	class UPlayerHUDWidget* PlayerHUDWidget{};
 
@@ -71,18 +96,18 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	uint8 HighestCombo{};
 
-	UPROPERTY(BlueprintReadOnly, Category = Stats)
-	uint8 NumEnemiesInLevel{};
+	UPROPERTY(BlueprintReadWrite, Category = Stats)
+	uint8 NumEnemiesInLevel{38};
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
-	uint8 EnemiesRemainingInLevel{}; 
+	uint8 EnemiesRemainingInLevel{NumEnemiesInLevel}; 
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	bool UltraCombo{ false };
 	
 	FTimerHandle ComboResetHandle{};
 
-	float ComboTimer{ 8.f };
+	float ComboTimer{ 5.f };
 
 	float MaxComboTime{ ComboTimer };
 

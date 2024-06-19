@@ -11,6 +11,7 @@
 
 DECLARE_DELEGATE(MovementDelegate);
 DECLARE_DELEGATE(StartRunDelegate);
+DECLARE_DELEGATE(PauseGameDelegate);
 
 UENUM(Blueprintable)
 enum EPlayerMovementState : uint8 {
@@ -42,6 +43,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void StopSliding();
+
 	bool RunStarted{ false };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
@@ -60,6 +63,16 @@ public:
 
 	StartRunDelegate StartRunDelegate{};
 
+	PauseGameDelegate PauseGameDelegate{};
+
+	FTimerHandle WallRunningHandle{};
+
+	float WallRunningDuration{ 2.f };
+	
+	void FellOffWall();
+
+	float KickDuration{ 0.45f };
+
 
 protected:
 	//Overrides
@@ -67,13 +80,23 @@ protected:
 
 	virtual void Destroyed() override;
 
+	virtual void Jump() override;
+
 	bool KickOnce{ true };
 	
 	void KickAgain();
 
+	float Sensitivity{ 1.0f };
+
+	UFUNCTION()
+	void UpdateSensitivity(float Value);
+
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
 	EPlayerMovementState MovementState {EPlayerMovementState::Running};
+
+	FHitResult LeftOfPlayerHit{};
+	FHitResult RightOfPlayerHit{};
 
 	UPROPERTY(BlueprintReadOnly, Category = Anims)
 	EPlayerWeaponState PlayerWeaponStatus{ EPlayerWeaponState::Unarmed };
@@ -82,12 +105,12 @@ protected:
 
 	void UpdateMovementState();
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = PlayerAttributes)
 	class UCharacterMovementComponent* PlayerMovementComp{};
 
 	//Input
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	class UInputAction* IA_Crouch{};
+	class UInputAction* IA_Pause{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_Jump{};
@@ -117,6 +140,9 @@ protected:
 	class UInputAction* IA_Restart{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Slide{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class AAdrenPlayerController* AdrenPlayerController{};
 
 	UFUNCTION()
@@ -132,7 +158,8 @@ protected:
 
 	void StartRun();
 
-	
+	UFUNCTION()
+	void PauseGame(const struct FInputActionInstance& Instance);
 
 
 	UFUNCTION()
@@ -147,15 +174,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Slide)
 	class UCameraShakeSourceComponent* SlideCameraShake{};
 
+	FHitResult CheckAboveHead{};
+
 	void CalcFloorInfluence();
 
-	void ClampSlideVelocity();
+	float DownhillForce{ 380000.f };
 
-	float DownhillForce{ 400000.f };
+	float MaxSpeed{ 6250000.f };
 
-	float MaxSlideSpeed{ 10000000.f };
+	float SlideImpulseForce{ 300.f };
 
-	float SlideImpulseForce{ 250.f };
+	float DashImpulseForce{ 170000.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
@@ -231,10 +260,13 @@ protected:
 	class ABaseWeapon* EquippedWeapon {};
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float KickDamage{ 40.f };
+	float SlideKickDamage{ 60.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float CrouchSpeedSquared{ 250000.f };
+	float KickDamage{ 100.f };
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
+	float CrouchSpeedSquared{ 15000.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
 	float Health{ 10.f };
@@ -264,6 +296,7 @@ public:
 	FORCEINLINE void SetRunStarted(bool Delta) { RunStarted = Delta; }
 	FORCEINLINE float ConvertHealthToPercent(float CurrentHealth) { return CurrentHealth / MaxHealth; }
 	FORCEINLINE float ConvertSloMoToPercent(float Delta) { return Delta / MaxSloMo; }
+	
 	
 };
 

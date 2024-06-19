@@ -8,6 +8,7 @@ void AAdrenPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	SwitchToDefaultMappingContext();
+	
 }
 
 void AAdrenPlayerController::SwitchToDefaultMappingContext()
