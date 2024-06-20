@@ -14,5 +14,13 @@ class SOCKSCRUBS_API UAdrenGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
-	
+protected:
+	virtual void Init() override;
+
+	UFUNCTION()
+	void RetrieveLoadedData(const FString& SlotName, const int32 UserIndex, class USaveGame* LoadedGameData);
+
+
+public:
+	float LoadedSensitivity{};
 };

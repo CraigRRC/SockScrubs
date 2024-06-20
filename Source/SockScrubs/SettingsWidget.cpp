@@ -8,6 +8,7 @@
 #include "Components/Button.h"
 #include "AdrenSaveGame.h"
 #include "Kismet/GameplayStatics.h"
+#include "AdrenGameInstance.h"
 
 
 
@@ -15,6 +16,11 @@ void USettingsWidget::NativeConstruct(){
 	Super::NativeConstruct();
 	if (Slider) {
 		Slider->OnValueChanged.AddDynamic(this, &USettingsWidget::UpdateValueText);
+		UAdrenGameInstance* GameInstance = Cast<UAdrenGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		if (GameInstance->LoadedSensitivity > 0.f) {
+			Slider->SetValue(GameInstance->LoadedSensitivity);
+			Sens = GameInstance->LoadedSensitivity;
+		}
 		if (SenValue) {
 			UpdateValueText(Sens);
 			SenValue->OnTextCommitted.AddDynamic(this, &USettingsWidget::FilterSensitivityText);
@@ -24,7 +30,7 @@ void USettingsWidget::NativeConstruct(){
 		ApplyButton->OnClicked.AddDynamic(this, &USettingsWidget::SetSensitivityValue);
 	}
 	if (ReturnButton) {
-		ReturnButton->OnClicked.AddDynamic(this, &USettingsWidget::Return);
+		ReturnButton->OnClicked.AddDynamic(this, &USettingsWidget::Return); 
 	}
 
 	

@@ -86,7 +86,7 @@ protected:
 	
 	void KickAgain();
 
-	float Sensitivity{ 1.0f };
+	float Sensitivity{};
 
 	UFUNCTION()
 	void UpdateSensitivity(float Value);
@@ -296,7 +296,7 @@ public:
 	FORCEINLINE void SetRunStarted(bool Delta) { RunStarted = Delta; }
 	FORCEINLINE float ConvertHealthToPercent(float CurrentHealth) { return CurrentHealth / MaxHealth; }
 	FORCEINLINE float ConvertSloMoToPercent(float Delta) { return Delta / MaxSloMo; }
-	
+	FORCEINLINE void SetPlayerSensitivity(float Delta) { Sensitivity = Delta; }
 	
 };
 
