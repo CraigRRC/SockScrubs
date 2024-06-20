@@ -238,7 +238,7 @@ void ABaseEnemy::LookAtPlayer(){
 	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 185.f, GetActorLocation() + FVector::UpVector * 185.f + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 185.f, GetActorLocation() + FVector::UpVector * 185.f + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::None, HitResults, true);
 	for (FHitResult const &hit : HitResults) {
 		if (hit.bBlockingHit) {
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
