@@ -118,6 +118,9 @@ void AAdrenGameMode::Tick(float DeltaTime){
 			if (GameInstance->LoadedSensitivity > 0) {
 				Player->SetPlayerSensitivity(GameInstance->LoadedSensitivity);
 			}
+			else {
+				Player->SetPlayerSensitivity(1.0f);
+			}
 		}
 		
 		DoOnce = false;
