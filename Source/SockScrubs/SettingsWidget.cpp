@@ -6,6 +6,8 @@
 #include "Components/Slider.h"
 #include "Components/EditableTextBox.h"
 #include "Components/Button.h"
+#include "AdrenSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 
 
 
@@ -36,6 +38,12 @@ void USettingsWidget::NativeDestruct(){
 void USettingsWidget::SetSensitivityValue(){
 	Sens = Slider->GetValue();
 	OnSensUpdatedDelegate.ExecuteIfBound(Sens);
+	if (UAdrenSaveGame* SaveSettingsInstance = Cast<UAdrenSaveGame>(UGameplayStatics::CreateSaveGameObject(UAdrenSaveGame::StaticClass()))) {
+		SaveSettingsInstance->PlayerSensitivity = Sens;
+		if (UGameplayStatics::SaveGameToSlot(SaveSettingsInstance, SaveSettingsInstance->SaveSlotName, SaveSettingsInstance->UserIndex)) {
+			GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Red, "SaveSuccess");
+		}
+	}
 }
 
 void USettingsWidget::FilterSensitivityText(const FText& Text, ETextCommit::Type CommitMethod){
