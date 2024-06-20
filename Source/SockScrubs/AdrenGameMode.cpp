@@ -9,6 +9,7 @@
 #include "PlayerHUDWidget.h"
 #include "PauseWidget.h"
 #include "SettingsWidget.h"
+#include "AdrenGameInstance.h"
 
 AAdrenGameMode::AAdrenGameMode(){
 	PrimaryActorTick.bCanEverTick = true;
@@ -113,6 +114,12 @@ void AAdrenGameMode::Tick(float DeltaTime){
 		}
 		BindStartRunDelegate();
 		Player->PauseGameDelegate.BindUObject(this, &AAdrenGameMode::PauseGame);
+		if (UAdrenGameInstance* GameInstance = Cast<UAdrenGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))) {
+			if (GameInstance->LoadedSensitivity > 0) {
+				Player->SetPlayerSensitivity(GameInstance->LoadedSensitivity);
+			}
+		}
+		
 		DoOnce = false;
 	}
 
