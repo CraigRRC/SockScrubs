@@ -39,6 +39,13 @@ void USettingsWidget::SetSensitivityValue(){
 }
 
 void USettingsWidget::FilterSensitivityText(const FText& Text, ETextCommit::Type CommitMethod){
+	if (ETextCommit::OnEnter) {
+		SenValue->SetText(Text);
+		FString TextAsString = Text.ToString();
+		float ConvertedFloat = FCString::Atof(*TextAsString);
+		Slider->SetValue(ConvertedFloat);
+		SetSensitivityValue();
+	}
 	
 }
 
@@ -47,7 +54,8 @@ void USettingsWidget::Return(){
 }
 
 void USettingsWidget::UpdateValueText(float Value){
-	FString SliderString = FString::SanitizeFloat(Value);
+	FString SliderString = FString::Printf(TEXT("%.2f"), Value);
+	//FString SliderString = FString::SanitizeFloat(Value);
 	FText SliderText = FText::FromString(SliderString);
 	SenValue->SetText(SliderText);
 }
