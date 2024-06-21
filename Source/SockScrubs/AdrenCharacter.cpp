@@ -586,8 +586,8 @@ void AAdrenCharacter::BeginCrouch()
 }
 
 void AAdrenCharacter::StopCrouching(){
-	GetWorld()->LineTraceSingleByChannel(CheckAboveHead, GetActorLocation(),GetActorLocation() + GetActorUpVector() * CapsuleHalfHeight + 20.f, ECollisionChannel::ECC_Camera);
-	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorUpVector() * CapsuleHalfHeight, FColor::Orange, true);
+	GetWorld()->LineTraceSingleByChannel(CheckAboveHead, GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight + 50.f, ECollisionChannel::ECC_Camera);
+	DrawDebugLine(GetWorld(), GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight + 50.f, FColor::Orange, true);
 	if (!CheckAboveHead.bBlockingHit) {
 		MovementState = EPlayerMovementState::Running;
 		MovementStateDelegate.ExecuteIfBound();
@@ -595,9 +595,9 @@ void AAdrenCharacter::StopCrouching(){
 	}
 	if (CheckAboveHead.bBlockingHit) {
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Magenta, CheckAboveHead.GetActor()->GetName());
-		if (MovementState == EPlayerMovementState::Sliding) {
-			BeginCrouch();
-		}
+		MovementState = EPlayerMovementState::Sliding;
+		MovementStateDelegate.ExecuteIfBound();
+		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * 1000.f, true);
 	}
 	
 }
