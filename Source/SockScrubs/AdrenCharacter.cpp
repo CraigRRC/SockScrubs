@@ -166,6 +166,7 @@ void AAdrenCharacter::UpdateMovementState()
 		PlayerMovementComp->GravityScale = 0;
 		PlayerMovementComp->Velocity.Z = 0;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
+		StopKicking();
 		break;
 	default:
 		break;
@@ -270,8 +271,10 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 void AAdrenCharacter::StopSliding()
 {
-	StopCrouching();
 	CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
+	if (MovementState == EPlayerMovementState::Dashing) return;
+	StopCrouching();
+	
 }
 
 void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
@@ -349,6 +352,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Input->BindAction(IA_Shoot, ETriggerEvent::Started, this, &AAdrenCharacter::ThrowWhenEmpty);
 	Input->BindAction(IA_Throw, ETriggerEvent::Triggered, this, &AAdrenCharacter::Throw);
 	Input->BindAction(IA_Kick, ETriggerEvent::Triggered, this, &AAdrenCharacter::Kick);
+	Input->BindAction(IA_AirDash, ETriggerEvent::Triggered, this, &AAdrenCharacter::AirDash);
 	Input->BindAction(IA_StartRun, ETriggerEvent::Triggered, this, &AAdrenCharacter::StartRun);
 	Input->BindAction(IA_ActivateSloMo, ETriggerEvent::Triggered, this, &AAdrenCharacter::ActivateSloMo);
 	Input->BindAction(IA_Restart, ETriggerEvent::Triggered, this, &AAdrenCharacter::PlayerDie);
@@ -386,6 +390,16 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddControllerYawInput(AxisValue2D.X * Sensitivity);
 	AddControllerPitchInput(AxisValue2D.Y * Sensitivity);
+}
+
+void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
+	if (!PlayerMovementComp->IsMovingOnGround() && bCanDash) {
+		PlayerMovementComp->Velocity = FVector::ZeroVector;
+		PlayerMovementComp->AddImpulse((PlayerCam->GetForwardVector() + FVector::UpVector * 0.2f) * DashImpulseForce);
+		MovementState = EPlayerMovementState::Dashing;
+		MovementStateDelegate.ExecuteIfBound();
+		bCanDash = false;
+	}
 }
 
 void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
@@ -469,13 +483,6 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	if (MovementState == EPlayerMovementState::WallRunning) return;
 	EnableKickHitbox();
-	if (!PlayerMovementComp->IsMovingOnGround() && bCanDash) {
-		PlayerMovementComp->Velocity = FVector::ZeroVector;
-		PlayerMovementComp->AddImpulse((PlayerCam->GetForwardVector() + FVector::UpVector * 0.2f) * DashImpulseForce);
-		MovementState = EPlayerMovementState::Dashing;
-		MovementStateDelegate.ExecuteIfBound();
-		bCanDash = false;
-	}
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, KickDuration, false);
 }
@@ -568,7 +575,7 @@ void AAdrenCharacter::GainLife(float HealthRecovery){
 
 void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
 {
-	if (MovementState == EPlayerMovementState::WallRunning) return;
+	if (MovementState == EPlayerMovementState::WallRunning || MovementState == EPlayerMovementState::Dashing) return;
 	if (PlayerCapsule->GetScaledCapsuleHalfHeight() == CapsuleHalfHeight) {
 		BeginCrouch();
 		

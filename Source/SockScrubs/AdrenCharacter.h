@@ -147,10 +147,16 @@ protected:
 	class UInputAction* IA_Slide{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_AirDash{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class AAdrenPlayerController* AdrenPlayerController{};
 
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
+
+	UFUNCTION()
+	void AirDash(const struct FInputActionInstance& Instance);
 
 	UFUNCTION(BlueprintCallable)
 	void Throw(const struct FInputActionInstance& Instance);
