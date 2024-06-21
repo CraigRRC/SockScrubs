@@ -456,7 +456,7 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 }
 
 void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
-	if (SloMo != MaxSloMo) return;
+	if (SloMo < MaxSloMo * 0.25f) return;
 	bSloMo = true;
 	bCanGenerateSloMo = false;
 	
@@ -586,8 +586,12 @@ void AAdrenCharacter::BeginCrouch()
 }
 
 void AAdrenCharacter::StopCrouching(){
-	GetWorld()->LineTraceSingleByChannel(CheckAboveHead, GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight + 50.f, ECollisionChannel::ECC_Camera);
-	DrawDebugLine(GetWorld(), GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight + 50.f, FColor::Orange, true);
+	TArray<AActor*> IgnoreSelf{};
+	IgnoreSelf.AddUnique(this);
+	if (EquippedWeapon != nullptr) {
+		IgnoreSelf.AddUnique(EquippedWeapon);
+	}
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * (CapsuleHalfHeight + 20.f), 10.f, ETraceTypeQuery::TraceTypeQuery1, false, IgnoreSelf, EDrawDebugTrace::ForDuration, CheckAboveHead, true);
 	if (!CheckAboveHead.bBlockingHit) {
 		MovementState = EPlayerMovementState::Running;
 		MovementStateDelegate.ExecuteIfBound();
@@ -597,7 +601,7 @@ void AAdrenCharacter::StopCrouching(){
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Magenta, CheckAboveHead.GetActor()->GetName());
 		MovementState = EPlayerMovementState::Sliding;
 		MovementStateDelegate.ExecuteIfBound();
-		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * 1000.f, true);
+		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * 2000.f, true);
 	}
 	
 }
