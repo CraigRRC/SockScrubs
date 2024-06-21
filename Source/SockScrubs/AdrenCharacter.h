@@ -73,6 +73,8 @@ public:
 
 	float KickDuration{ 0.45f };
 
+	float WallJumpForce{ 600.f };
+
 
 protected:
 	//Overrides

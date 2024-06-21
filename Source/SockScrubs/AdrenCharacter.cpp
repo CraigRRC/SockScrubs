@@ -80,16 +80,16 @@ void AAdrenCharacter::Jump(){
 		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 		if (LeftOfPlayerHit.bBlockingHit) {
 			
-			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * 500.f , true);
+			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce , true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		}
 		if (RightOfPlayerHit.bBlockingHit) {
 
-			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * 500.f, true);
+			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
+			GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		}
 		
-		MovementState = EPlayerMovementState::Running;
-		MovementStateDelegate.ExecuteIfBound();
+		FellOffWall();
 	}
 	else {
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
@@ -103,12 +103,7 @@ void AAdrenCharacter::Jump(){
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
-				if (GetVelocity().Length() < MaxPlayerSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
-				}
-				else {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
-				}
+				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -117,12 +112,8 @@ void AAdrenCharacter::Jump(){
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
-				if (GetVelocity().Length() < MaxPlayerSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
-				}
-				else {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
-				}
+				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
+				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -224,6 +215,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			}
 			else{
 				GetWorldTimerManager().ClearTimer(WallRunningHandle);
+				PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
 				FellOffWall();
 			}
 		}
@@ -234,6 +226,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			}
 			else {
 				GetWorldTimerManager().ClearTimer(WallRunningHandle);
+				PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
 				FellOffWall();
 			}
 		}
