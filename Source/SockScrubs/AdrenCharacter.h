@@ -83,6 +83,8 @@ protected:
 	virtual void Jump() override;
 
 	bool KickOnce{ true };
+
+	bool EndDashOnce{ true };
 	
 	void KickAgain();
 
@@ -184,7 +186,7 @@ protected:
 
 	float SlideImpulseForce{ 300.f };
 
-	float DashImpulseForce{ 170000.f };
+	float DashImpulseForce{ 300000.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);

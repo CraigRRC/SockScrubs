@@ -147,7 +147,7 @@ void AAdrenCharacter::UpdateMovementState()
 	case Running:
 		MaxPlayerSpeed = 950.f;
 		PlayerMovementComp->GroundFriction = 8.f;
-		PlayerMovementComp->GravityScale = 2.5;
+		PlayerMovementComp->GravityScale = 3.f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
@@ -155,19 +155,19 @@ void AAdrenCharacter::UpdateMovementState()
 		MaxPlayerSpeed = 300.f;
 		CrouchSpeedSquared = MaxPlayerSpeed * MaxPlayerSpeed + 5.f;
 		PlayerMovementComp->GroundFriction = 8.f;
-		PlayerMovementComp->GravityScale = 2.5;
+		PlayerMovementComp->GravityScale = 3.f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
 	case Sliding:
 		PlayerMovementComp->GroundFriction = 0.f;
-		PlayerMovementComp->GravityScale = 2.5;
+		PlayerMovementComp->GravityScale = 3.f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		EnableKickHitbox();
 		break;
 	case Dashing:
 		PlayerMovementComp->GroundFriction = 8.f;
-		PlayerMovementComp->GravityScale = 2.5;
+		PlayerMovementComp->GravityScale = 4.0f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
 		EnableKickHitbox();
 		break;
@@ -196,6 +196,18 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
 		bCanDash = true;
+	}
+
+	if (PlayerMovementComp->IsMovingOnGround()) {
+		if (EndDashOnce) {
+			EndDash();
+			EndDashOnce = false;
+		}
+	}
+
+
+	if (!PlayerMovementComp->IsMovingOnGround()) {
+		EndDashOnce = true;
 	}
 	
 	if (MovementState == EPlayerMovementState::WallRunning) {
@@ -308,7 +320,6 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 
 void AAdrenCharacter::StartSlide()
 {
-	
 	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
 	MovementState = EPlayerMovementState::Sliding;
@@ -466,12 +477,11 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (MovementState == EPlayerMovementState::WallRunning) return;
 	EnableKickHitbox();
 	if (!PlayerMovementComp->IsMovingOnGround() && bCanDash) {
-		PlayerMovementComp->AddImpulse(PlayerCam->GetForwardVector() * DashImpulseForce);
+		PlayerMovementComp->Velocity = FVector::ZeroVector;
+		PlayerMovementComp->AddImpulse((PlayerCam->GetForwardVector() + FVector::UpVector * 0.2f) * DashImpulseForce);
 		MovementState = EPlayerMovementState::Dashing;
 		MovementStateDelegate.ExecuteIfBound();
-		FTimerHandle EndDashHandle{};
 		bCanDash = false;
-		GetWorldTimerManager().SetTimer(EndDashHandle, this, &AAdrenCharacter::EndDash, KickDuration, false);
 	}
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, KickDuration, false);
@@ -490,10 +500,14 @@ void AAdrenCharacter::StopKicking(){
 }
 
 void AAdrenCharacter::EndDash(){
+	StopKicking();
 	if (MovementState == EPlayerMovementState::Crouching) {
 		StopCrouching();
 	}
-	
+	else {
+		MovementState = EPlayerMovementState::Running;
+		MovementStateDelegate.ExecuteIfBound();
+	}
 }
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
