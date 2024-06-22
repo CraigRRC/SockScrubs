@@ -97,9 +97,6 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			
 		}
 	}
-	
-	
-	
 }
 
 void ABaseWeapon::CleanUp(){

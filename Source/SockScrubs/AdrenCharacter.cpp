@@ -470,7 +470,7 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 }
 
 void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
-	if (SloMo < MaxSloMo * 0.25f) return;
+	if (SloMo != MaxSloMo) return;
 	bSloMo = true;
 	bCanGenerateSloMo = false;
 	
