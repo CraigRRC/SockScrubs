@@ -73,6 +73,8 @@ public:
 
 	float KickDuration{ 0.45f };
 
+	float WallJumpForce{ 600.f };
+
 
 protected:
 	//Overrides
@@ -83,10 +85,12 @@ protected:
 	virtual void Jump() override;
 
 	bool KickOnce{ true };
+
+	bool EndDashOnce{ true };
 	
 	void KickAgain();
 
-	float Sensitivity{ 1.0f };
+	float Sensitivity{};
 
 	UFUNCTION()
 	void UpdateSensitivity(float Value);
@@ -143,10 +147,16 @@ protected:
 	class UInputAction* IA_Slide{};
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_AirDash{};
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class AAdrenPlayerController* AdrenPlayerController{};
 
 	UFUNCTION()
 	void Look(const struct FInputActionInstance& Instance);
+
+	UFUNCTION()
+	void AirDash(const struct FInputActionInstance& Instance);
 
 	UFUNCTION(BlueprintCallable)
 	void Throw(const struct FInputActionInstance& Instance);
@@ -184,7 +194,7 @@ protected:
 
 	float SlideImpulseForce{ 300.f };
 
-	float DashImpulseForce{ 170000.f };
+	float DashImpulseForce{ 300000.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
@@ -296,7 +306,7 @@ public:
 	FORCEINLINE void SetRunStarted(bool Delta) { RunStarted = Delta; }
 	FORCEINLINE float ConvertHealthToPercent(float CurrentHealth) { return CurrentHealth / MaxHealth; }
 	FORCEINLINE float ConvertSloMoToPercent(float Delta) { return Delta / MaxSloMo; }
-	
+	FORCEINLINE void SetPlayerSensitivity(float Delta) { Sensitivity = Delta; }
 	
 };
 
