@@ -99,6 +99,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	float BulletRadius{ 5.f };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class UMaterialInterface* BulletImpact{};
+
 	bool DoOnce{ true };
 
 	void ResetDoOnce();

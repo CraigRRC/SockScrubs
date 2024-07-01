@@ -96,6 +96,13 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
 			
 		}
+		else {
+			
+			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletImpact, FVector(4, 16, 16), Hit.ImpactPoint, Hit.ImpactNormal.Rotation(), 20.f);
+			//Spawn the decal
+			//Size the decal
+			//Possibly rotate the decal
+		}
 	}
 }
 
