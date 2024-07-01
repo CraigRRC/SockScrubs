@@ -177,8 +177,13 @@ protected:
 	/*UFUNCTION()
 	void OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);*/
 
+	bool bIsDead{ false };
+
+	bool bIsStunned{ false };
+
 
 public:
-	
+	FORCEINLINE bool GetIsDead() { return bIsDead; }
+	FORCEINLINE bool GetIsStunned() { return bIsStunned; }
 
 };

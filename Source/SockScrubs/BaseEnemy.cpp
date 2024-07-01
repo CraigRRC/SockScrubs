@@ -152,6 +152,7 @@ void ABaseEnemy::SwitchState(){
 		EnemyMesh->SetNotifyRigidBodyCollision(true);
 		break;
 	case EEnemyState::Stunned:
+		bIsStunned = true;
 		if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
 			GetWorldTimerManager().ClearTimer(FireHandle);
 		}
@@ -171,12 +172,15 @@ void ABaseEnemy::SwitchState(){
 		GetWorldTimerManager().SetTimer(StunDuration, this, &ABaseEnemy::ReturnFromStunState, 4.f, false);
 		break;
 	case EEnemyState::Dead:
+		bIsDead = true;
 		TempGunMesh->SetVisibility(false);
 		HealthWidgetComponent->SetVisibility(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		EnemyMesh->PutAllRigidBodiesToSleep();
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		//This is for the memes.
 		//UGameplayStatics::PlaySound2D(GetWorld(), DeathSounds[FMath::RandRange(0, DeathSounds.Num() - 1)], 10.0f, FMath::FRandRange(0.8, 1));
 		GetWorldTimerManager().ClearAllTimersForObject(this);

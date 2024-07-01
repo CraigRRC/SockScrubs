@@ -228,6 +228,15 @@ protected:
 	UFUNCTION()
 	void Kick(const struct FInputActionInstance& Instance);
 
+	UFUNCTION()
+	void HitStun();
+
+	float DashHitStunDuration{ 0.05f };
+
+	float SlideHitStunDuration{ 0.01f };
+
+	float KickHitStunDuration{ 0.05f };
+
 	void EnableKickHitbox();
 
 	void StopKicking();

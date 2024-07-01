@@ -486,6 +486,10 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, KickDuration, false);
 }
+
+void AAdrenCharacter::HitStun(){
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
+}
 	
 
 void AAdrenCharacter::EnableKickHitbox(){
@@ -511,6 +515,7 @@ void AAdrenCharacter::EndDash(){
 }
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
+	GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Red, OtherComp->GetName());
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (KickOnce && HitActor) {
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {
@@ -518,13 +523,24 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 		}
 		else {
 			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			FTimerHandle HitStun{};
+			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
 		}
 		if (MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
 			PlayerMovementComp->Velocity = GetVelocity() * 0.5f; 
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			FTimerHandle HitStun{};
+			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			
+
 		}
 		if (MovementState == EPlayerMovementState::Sliding) {
 			PlayerMovementComp->Velocity = GetVelocity() * 0.9f;
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			FTimerHandle HitStun{};
+			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, SlideHitStunDuration, false);
 		}
 		KickOnce = false;
 		FTimerHandle CanKickAgainHandle{};
