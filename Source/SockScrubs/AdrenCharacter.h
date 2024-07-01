@@ -14,6 +14,12 @@ DECLARE_DELEGATE(StartRunDelegate);
 DECLARE_DELEGATE(PauseGameDelegate);
 
 UENUM(Blueprintable)
+enum EPlayerState : uint8 {
+	Alive UMETA(DisplayName = "Alive"),
+	Dead UMETA(DisplayName = "Dead")
+};
+
+UENUM(Blueprintable)
 enum EPlayerMovementState : uint8 {
 	Running UMETA(DisplayName = "Running"),
 	Crouching UMETA(DisplayName = "Crouching"),
@@ -61,6 +67,8 @@ public:
 
 	void PlayerDie();
 
+	void PlayerDead();
+
 	StartRunDelegate StartRunDelegate{};
 
 	PauseGameDelegate PauseGameDelegate{};
@@ -98,6 +106,8 @@ protected:
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
 	EPlayerMovementState MovementState {EPlayerMovementState::Running};
+
+	EPlayerState PlayerState{ EPlayerState::Alive };
 
 	FHitResult LeftOfPlayerHit{};
 	FHitResult RightOfPlayerHit{};
@@ -190,11 +200,11 @@ protected:
 
 	float DownhillForce{ 380000.f };
 
-	float MaxSpeed{ 6250000.f };
+	float MaxSpeed{ 5290000.f };
 
-	float SlideImpulseForce{ 300.f };
+	float SlideImpulseForce{ 350.f };
 
-	float DashImpulseForce{ 300000.f };
+	float DashImpulseForce{ 250000.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);

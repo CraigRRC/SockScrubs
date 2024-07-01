@@ -103,7 +103,10 @@ void AAdrenCharacter::Jump(){
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
+				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1500.f, true);
+				}
+				
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -112,8 +115,9 @@ void AAdrenCharacter::Jump(){
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
+				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1500.f, true);
+				}
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -183,7 +187,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	DrainLife(ShouldDrainHealth, DeltaTime);
 
 	if (GetVelocity().SizeSquared2D() > MaxSpeed) {
-		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2500);
+		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2300);
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
@@ -243,6 +247,10 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			CustomTimeDilation = 1.0f;
 			bCanGenerateSloMo = true;
 			bSloMo = false;
+			FPostProcessSettings Temp{};
+			Temp.bOverride_WhiteTemp = true;
+			Temp.WhiteTemp = 6500.f;
+			PlayerCam->PostProcessSettings = Temp;
 		}
 	}
 
@@ -369,6 +377,7 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
 		PlayerDie();
+		
 	}
 	else {
 		if (PlayerCameraShake->CameraShake) {
@@ -380,10 +389,20 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 
 void AAdrenCharacter::PlayerDie()
 {
+	PlayerState = EPlayerState::Dead;
+	CamManager->StopAllCameraShakes(true);
+	DisableInput(AdrenPlayerController);
+	FTimerHandle DeathTimer{};
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &AAdrenCharacter::PlayerDead, 0.1f, false);
+}
+
+void AAdrenCharacter::PlayerDead()
+{
+	//Trigger Event that tells the GameMode that the player died.
 	FString LevelString = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	FName LevelName = FName(LevelString);
 	UGameplayStatics::OpenLevel(GetWorld(), LevelName);
-	//Trigger Event that tells the GameMode that the player died.
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -410,6 +429,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	}
 	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EquippedWeapon->SetLifeTimer();
+	HUDWidget->SetOutOfAmmoVisiblilty(ESlateVisibility::Hidden);
 	//Simulate physics on it if not already simulating
 	EquippedWeapon->GetGunMesh()->SetSimulatePhysics(true);
 	//Tell the anim instance that we don't have a weapon.
@@ -434,6 +454,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 void AAdrenCharacter::ThrowWhenEmpty(const FInputActionInstance& Instance){
 	if (Ammo == 0) {
 		Throw(Instance);
+		HUDWidget->SetOutOfAmmoVisiblilty(ESlateVisibility::Hidden);
 	}
 }
 
@@ -463,7 +484,11 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	Ammo--;
 	if (HUDWidget) {
 		HUDWidget->SetAmmoCounter(Ammo);
+		if (Ammo == 0) {
+			HUDWidget->SetOutOfAmmoVisiblilty(ESlateVisibility::Visible);
+		}
 	}
+
 	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
 	bCanFire = false;
 
@@ -476,6 +501,10 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 	
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.5f);
 	CustomTimeDilation = 1.2f;
+	FPostProcessSettings Temp{};
+	Temp.bOverride_WhiteTemp = true;
+	Temp.WhiteTemp = 4000.f;
+	PlayerCam->PostProcessSettings = Temp;
 
 }
 

@@ -4,6 +4,7 @@
 #include "PlayerHUDWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
+#include "Components/Image.h"
 #include "Kismet/KismetStringLibrary.h"
 
 void UPlayerHUDWidget::SetAmmoCounter(uint8 CurrentAmmo){
@@ -47,4 +48,12 @@ void UPlayerHUDWidget::SetRunTimerText(double time){
 
 void UPlayerHUDWidget::SetRunTimerVisibility(ESlateVisibility V){
 	Timer->SetVisibility(V);
+}
+
+void UPlayerHUDWidget::SetOutOfAmmoVisiblilty(ESlateVisibility V){
+	//Temp
+	OutOfAmmo1->SetVisibility(V);
+	OutOfAmmo2->SetVisibility(V);
+	OutOfAmmo3->SetVisibility(V);
+	OutOfAmmo4->SetVisibility(V);
 }
