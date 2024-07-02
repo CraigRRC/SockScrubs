@@ -434,6 +434,7 @@ void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 
 void AAdrenCharacter::IncreaseFOV(){
 	if (!GetWorld()) return;
+	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 
 	GetWorldTimerManager().SetTimer(FOVTimerHandle, [this]() {
@@ -441,7 +442,8 @@ void AAdrenCharacter::IncreaseFOV(){
 		} ,GetWorld()->GetDeltaSeconds(), true);
 }
 
-void AAdrenCharacter::DecreaseFOV(){
+void AAdrenCharacter::DecreaseFOV() {
+	if (!RunStarted) return;
 	if (!GetWorld()) return;
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 
@@ -452,6 +454,7 @@ void AAdrenCharacter::DecreaseFOV(){
 
 void AAdrenCharacter::InterpFOV(float TargetFOV, float DeltaTime) {
 	if (!GetWorld()) return; 
+	if (!RunStarted) return;
 	float CurrentFOV = PlayerCam->FieldOfView;
 	float InterpedFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, FOVInterpSpeed);
 	PlayerCam->SetFieldOfView(InterpedFOV);

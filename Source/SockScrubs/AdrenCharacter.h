@@ -168,6 +168,7 @@ protected:
 	UFUNCTION()
 	void AirDash(const struct FInputActionInstance& Instance);
 
+	UPROPERTY(BlueprintReadWrite)
 	FTimerHandle FOVTimerHandle{};
 
 	float PreviousFOV{};
