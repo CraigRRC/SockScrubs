@@ -168,6 +168,21 @@ protected:
 	UFUNCTION()
 	void AirDash(const struct FInputActionInstance& Instance);
 
+	FTimerHandle FOVTimerHandle{};
+
+	float PreviousFOV{};
+
+	float HighSpeedFOV{};
+
+	float FOVBuffer{ 15.f };
+	float FOVInterpSpeed{ 10.f};
+
+	void IncreaseFOV();
+
+	void DecreaseFOV();
+
+	void InterpFOV(float TargetFOV, float DeltaTime);
+
 	UFUNCTION(BlueprintCallable)
 	void Throw(const struct FInputActionInstance& Instance);
 
