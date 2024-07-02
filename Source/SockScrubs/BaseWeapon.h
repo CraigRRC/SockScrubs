@@ -102,6 +102,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	class UMaterialInterface* BulletImpact{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	class UNiagaraSystem* BloodSplatter{};
+
 	bool DoOnce{ true };
 
 	void ResetDoOnce();

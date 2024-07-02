@@ -59,6 +59,9 @@ protected:
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	class UMaterialInterface* BloodSplat{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class UPointLightComponent* IntentionHint{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
