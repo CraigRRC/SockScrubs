@@ -66,6 +66,7 @@ void AAdrenCharacter::BeginPlay()
 void AAdrenCharacter::Destroyed()
 {
 	Super::Destroyed();
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 	if (MovementStateDelegate.IsBound()) {
 		MovementStateDelegate.Unbind();
 	}
