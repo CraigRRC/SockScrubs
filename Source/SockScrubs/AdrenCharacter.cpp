@@ -15,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PlayerHUDWidget.h"
 #include "AdrenGameMode.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -60,7 +61,7 @@ void AAdrenCharacter::BeginPlay()
 	GameMode = Cast<AAdrenGameMode>(BaseGameMode);
 	GameMode->GainAdrenalineDelegate.BindUObject(this, &AAdrenCharacter::GainLife);
 	GameMode->OnSensUpdatedDelegate.BindUObject(this, &AAdrenCharacter::UpdateSensitivity);
-	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
 void AAdrenCharacter::Destroyed()
@@ -389,7 +390,6 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 		if (PlayerCameraShake->CameraShake) {
 			CamManager->StartCameraShake(PlayerCameraShake->CameraShake, 1.0f);
 		}
-		
 	}
 }
 
@@ -400,6 +400,7 @@ void AAdrenCharacter::PlayerDie()
 	DisableInput(AdrenPlayerController);
 	PlayerCam->SetFieldOfView(PreviousFOV);
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
+	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
 	FTimerHandle DeathTimer{};
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
 	GetWorldTimerManager().SetTimer(DeathTimer, this, &AAdrenCharacter::PlayerDead, 0.1f, false);
@@ -407,7 +408,6 @@ void AAdrenCharacter::PlayerDie()
 
 void AAdrenCharacter::PlayerDead()
 {
-	
 	//Trigger Event that tells the GameMode that the player died.
 	FString LevelString = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	FName LevelName = FName(LevelString);
@@ -684,9 +684,56 @@ void AAdrenCharacter::BeginCrouch()
 	MovementState = EPlayerMovementState::Crouching;
 	MovementStateDelegate.ExecuteIfBound();
 	PlayerCapsule->SetCapsuleHalfHeight(CrouchedCapsuleHalfHeight);
+	InterpCameraStandToCrouch();
+}
+
+void AAdrenCharacter::InterpCameraStandToCrouch(){
+	if (!GetWorld()) return;
+	if (!RunStarted) return;
+	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+
+	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
+	InterpedLocation = FVector(0, 0, CurrentCameraLocation.Z - CrouchedCapsuleHalfHeight);
+
+	GetWorldTimerManager().SetTimer(CrouchStandTimer, [this]() {
+		SmoothCrouchStandInterp(InterpedLocation, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+
+	
+}
+
+void AAdrenCharacter::InterpCameraCrouchToStand(){
+	if (!GetWorld()) return;
+	if (!RunStarted) return;
+	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+
+	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
+	InterpedLocation = FVector(0, 0, CurrentCameraLocation.Z + CrouchedCapsuleHalfHeight);
+
+	GetWorldTimerManager().SetTimer(CrouchStandTimer, [this]() {
+		SmoothCrouchStandInterp(InterpedLocation, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+
+}
+
+void AAdrenCharacter::SmoothCrouchStandInterp(FVector Target, float DeltaTime){
+	FVector CurrentLocation = PlayerCam->GetRelativeLocation();
+	//FVector TargetLocation = FMath::VInterpTo(CurrentLocation, Target, DeltaTime, 5.f);
+	FVectorSpringState SpringState{};
+	FVector TargetLocation = UKismetMathLibrary::VectorSpringInterp(CurrentLocation, Target, SpringState, 5000.f, 0.1f, DeltaTime);
+
+	PlayerCam->SetRelativeLocation(TargetLocation.GetClampedToSize(CrouchedCapsuleHalfHeight, CapsuleHalfHeight));
+
+	if (FVector::Dist(CurrentLocation, TargetLocation) <= KINDA_SMALL_NUMBER) {
+		PlayerCam->SetRelativeLocation(TargetLocation);
+		GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+	}
 }
 
 void AAdrenCharacter::StopCrouching(){
+
+	InterpCameraCrouchToStand();
+
 	TArray<AActor*> IgnoreSelf{};
 	IgnoreSelf.AddUnique(this);
 	if (EquippedWeapon != nullptr) {

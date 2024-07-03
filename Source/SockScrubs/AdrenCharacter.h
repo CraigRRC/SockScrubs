@@ -203,6 +203,17 @@ protected:
 
 	void BeginCrouch();
 
+	void InterpCameraStandToCrouch();
+
+	void InterpCameraCrouchToStand();
+
+	void SmoothCrouchStandInterp(FVector Target, float DeltaTime);
+
+	UPROPERTY(BlueprintReadWrite)
+	FTimerHandle CrouchStandTimer{};
+
+	FVector InterpedLocation{};
+
 	void StopCrouching();
 
 	void StartSlide();
