@@ -210,6 +210,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Slide)
 	class UCameraShakeSourceComponent* SlideCameraShake{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttrbutes)
+	class UCameraShakeSourceComponent* KickCameraShake{};
+
 	FHitResult CheckAboveHead{};
 
 	void CalcFloorInfluence();

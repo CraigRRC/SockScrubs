@@ -37,15 +37,13 @@ AAdrenCharacter::AAdrenCharacter()
 	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
 	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
 	PlayerCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("PlayerCameraShakeSource"));
+	KickCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("KickCameraShakeSource"));
 	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
-
 	PreviousFOV = PlayerCam->FieldOfView;
 	HighSpeedFOV = PreviousFOV + FOVBuffer;
 	
 
 }
-
-
 
 // Called when the game starts or when spawned
 void AAdrenCharacter::BeginPlay()
@@ -556,6 +554,7 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	if (MovementState == EPlayerMovementState::WallRunning) return;
 	EnableKickHitbox();
+	
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, KickDuration, false);
 }
@@ -592,6 +591,10 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 	GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Red, OtherComp->GetName());
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (KickOnce && HitActor) {
+		if (KickCameraShake->CameraShake) {
+			CamManager->StartCameraShake(KickCameraShake->CameraShake, 1.0f);
+		}
+
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {
 			HitActor->DamageTaken(true, SlideKickDamage, this, FVector::ZeroVector, NAME_None, false, true);
 		}
