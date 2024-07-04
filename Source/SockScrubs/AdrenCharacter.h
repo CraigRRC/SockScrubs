@@ -14,6 +14,12 @@ DECLARE_DELEGATE(StartRunDelegate);
 DECLARE_DELEGATE(PauseGameDelegate);
 
 UENUM(Blueprintable)
+enum EPlayerState : uint8 {
+	Alive UMETA(DisplayName = "Alive"),
+	Dead UMETA(DisplayName = "Dead")
+};
+
+UENUM(Blueprintable)
 enum EPlayerMovementState : uint8 {
 	Running UMETA(DisplayName = "Running"),
 	Crouching UMETA(DisplayName = "Crouching"),
@@ -61,6 +67,8 @@ public:
 
 	void PlayerDie();
 
+	void PlayerDead();
+
 	StartRunDelegate StartRunDelegate{};
 
 	PauseGameDelegate PauseGameDelegate{};
@@ -98,6 +106,8 @@ protected:
 	//Movement Related
 	MovementDelegate MovementStateDelegate{};
 	EPlayerMovementState MovementState {EPlayerMovementState::Running};
+
+	EPlayerState PlayerState{ EPlayerState::Alive };
 
 	FHitResult LeftOfPlayerHit{};
 	FHitResult RightOfPlayerHit{};
@@ -158,6 +168,22 @@ protected:
 	UFUNCTION()
 	void AirDash(const struct FInputActionInstance& Instance);
 
+	UPROPERTY(BlueprintReadWrite)
+	FTimerHandle FOVTimerHandle{};
+
+	float PreviousFOV{};
+
+	float HighSpeedFOV{};
+
+	float FOVBuffer{ 15.f };
+	float FOVInterpSpeed{ 10.f};
+
+	void IncreaseFOV();
+
+	void DecreaseFOV();
+
+	void InterpFOV(float TargetFOV, float DeltaTime);
+
 	UFUNCTION(BlueprintCallable)
 	void Throw(const struct FInputActionInstance& Instance);
 
@@ -177,6 +203,17 @@ protected:
 
 	void BeginCrouch();
 
+	void InterpCameraStandToCrouch();
+
+	void InterpCameraCrouchToStand();
+
+	void SmoothCrouchStandInterp(FVector Target, float DeltaTime);
+
+	UPROPERTY(BlueprintReadWrite)
+	FTimerHandle CrouchStandTimer{};
+
+	FVector InterpedLocation{};
+
 	void StopCrouching();
 
 	void StartSlide();
@@ -184,17 +221,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Slide)
 	class UCameraShakeSourceComponent* SlideCameraShake{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttrbutes)
+	class UCameraShakeSourceComponent* KickCameraShake{};
+
 	FHitResult CheckAboveHead{};
 
 	void CalcFloorInfluence();
 
 	float DownhillForce{ 380000.f };
 
-	float MaxSpeed{ 6250000.f };
+	float MaxSpeed{ 5290000.f };
 
-	float SlideImpulseForce{ 300.f };
+	float SlideImpulseForce{ 350.f };
 
-	float DashImpulseForce{ 300000.f };
+	float DashImpulseForce{ 250000.f };
 
 	UFUNCTION()
 	void Move(const struct FInputActionInstance& Instance);
@@ -215,6 +255,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraShakeSourceComponent* PlayerCameraShake{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HitSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* KickHitSound{};
+
+
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
 
@@ -227,6 +274,15 @@ protected:
 
 	UFUNCTION()
 	void Kick(const struct FInputActionInstance& Instance);
+
+	UFUNCTION()
+	void HitStun();
+
+	float DashHitStunDuration{ 0.05f };
+
+	float SlideHitStunDuration{ 0.01f };
+
+	float KickHitStunDuration{ 0.05f };
 
 	void EnableKickHitbox();
 

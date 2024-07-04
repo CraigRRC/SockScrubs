@@ -100,6 +100,13 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 	if (ClampedHealth <= 0.f) {
 		EnemyState = EEnemyState::Dead;
 		EnemyStateDelegate.ExecuteIfBound();
+		if (BloodSplat != nullptr) {
+			FHitResult BloodSplatterHit{};
+			GetWorld()->LineTraceSingleByChannel(BloodSplatterHit, GetActorLocation() + FVector::UpVector * 180.f, (GetActorLocation() + FVector::UpVector * 180.f) + GetActorForwardVector() * -1000.f, ECollisionChannel::ECC_Visibility);
+			if (BloodSplatterHit.bBlockingHit) {
+				UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BloodSplat, FVector(35, 200, 200), BloodSplatterHit.ImpactPoint, BloodSplatterHit.ImpactNormal.Rotation(), 10.f);
+			}
+		}
 		
 		if (!Headshot) {
 			if (HeadshotTing) {
@@ -115,17 +122,17 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
 				EnemyEliminatedDelegate.Execute(this, 1.f);
 			}
-			
-			
 		}
 	}
 	if (Headshot) {
+		
 		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 1.0f, 0.0f, HeadshotAttenuation);
 		}
+		
 	}
 }
 
@@ -152,6 +159,7 @@ void ABaseEnemy::SwitchState(){
 		EnemyMesh->SetNotifyRigidBodyCollision(true);
 		break;
 	case EEnemyState::Stunned:
+		bIsStunned = true;
 		if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
 			GetWorldTimerManager().ClearTimer(FireHandle);
 		}
@@ -171,12 +179,15 @@ void ABaseEnemy::SwitchState(){
 		GetWorldTimerManager().SetTimer(StunDuration, this, &ABaseEnemy::ReturnFromStunState, 4.f, false);
 		break;
 	case EEnemyState::Dead:
+		bIsDead = true;
 		TempGunMesh->SetVisibility(false);
 		HealthWidgetComponent->SetVisibility(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		EnemyMesh->PutAllRigidBodiesToSleep();
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		//This is for the memes.
 		//UGameplayStatics::PlaySound2D(GetWorld(), DeathSounds[FMath::RandRange(0, DeathSounds.Num() - 1)], 10.0f, FMath::FRandRange(0.8, 1));
 		GetWorldTimerManager().ClearAllTimersForObject(this);

@@ -34,6 +34,20 @@ protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UProgressBar* SloMoBar{};
 
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UImage* OutOfAmmo1{};
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UImage* OutOfAmmo2{};
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UImage* OutOfAmmo3{};
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UImage* OutOfAmmo4{};
+
+
 public:
 	void SetAmmoCounter(uint8 CurrentAmmo);
 
@@ -52,5 +66,7 @@ public:
 	void SetRunTimerText(double time);
 
 	void SetRunTimerVisibility(ESlateVisibility V);
+
+	void SetOutOfAmmoVisiblilty(ESlateVisibility V);
 	
 };

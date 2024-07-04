@@ -59,6 +59,9 @@ protected:
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	class UMaterialInterface* BloodSplat{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class UPointLightComponent* IntentionHint{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
@@ -177,8 +180,13 @@ protected:
 	/*UFUNCTION()
 	void OnBodyHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);*/
 
+	bool bIsDead{ false };
+
+	bool bIsStunned{ false };
+
 
 public:
-	
+	FORCEINLINE bool GetIsDead() { return bIsDead; }
+	FORCEINLINE bool GetIsStunned() { return bIsStunned; }
 
 };

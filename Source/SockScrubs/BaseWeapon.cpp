@@ -9,6 +9,8 @@
 #include "BaseProjectile.h"
 #include "Kismet/GameplayStatics.h"
 #include "Damage.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 
 // Sets default values
@@ -82,6 +84,9 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, BulletRadius, 10, FColor::Blue);
 		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
 		if (HitActorHasInterface) {
+			if (HitSound != nullptr && GetWorld() != nullptr) {
+				UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 2.f);
+			}
 			USphereComponent* Head = Cast<USphereComponent>(Hit.GetComponent());
 			if (Head) {
 				GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Red, "HeadShot", false);
@@ -94,6 +99,17 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 				HitActorHasInterface->DamageTaken(false, FirePower, OwningActor, Hit.ImpactPoint, Hit.BoneName);
 			}
 			//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, Hit.GetComponent()->GetName(), false);
+			//Spawn Blood VFX.
+			if (BloodSplatter != nullptr && GetWorld() != nullptr) {
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BloodSplatter, Hit.ImpactPoint, Hit.ImpactNormal.ToOrientationRotator());
+			}
+			
+		}
+		else {
+			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletImpact, FVector(4, 16, 16), Hit.ImpactPoint, Hit.ImpactNormal.Rotation(), 10.f);
+			if (BulletSparks != nullptr && GetWorld() != nullptr) {
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletSparks, Hit.ImpactPoint, Hit.ImpactNormal.ToOrientationRotator());
+			}
 			
 		}
 	}

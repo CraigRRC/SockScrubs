@@ -15,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PlayerHUDWidget.h"
 #include "AdrenGameMode.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -37,11 +38,13 @@ AAdrenCharacter::AAdrenCharacter()
 	FireCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("FireCameraShakeSource"));
 	SlideCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("SlideCameraShakeSource"));
 	PlayerCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("PlayerCameraShakeSource"));
+	KickCameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>(TEXT("KickCameraShakeSource"));
 	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
+	PreviousFOV = PlayerCam->FieldOfView;
+	HighSpeedFOV = PreviousFOV + FOVBuffer;
+	
 
 }
-
-
 
 // Called when the game starts or when spawned
 void AAdrenCharacter::BeginPlay()
@@ -58,11 +61,13 @@ void AAdrenCharacter::BeginPlay()
 	GameMode = Cast<AAdrenGameMode>(BaseGameMode);
 	GameMode->GainAdrenalineDelegate.BindUObject(this, &AAdrenCharacter::GainLife);
 	GameMode->OnSensUpdatedDelegate.BindUObject(this, &AAdrenCharacter::UpdateSensitivity);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
 void AAdrenCharacter::Destroyed()
 {
 	Super::Destroyed();
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 	if (MovementStateDelegate.IsBound()) {
 		MovementStateDelegate.Unbind();
 	}
@@ -103,7 +108,10 @@ void AAdrenCharacter::Jump(){
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
+				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1500.f, true);
+				}
+				
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -112,8 +120,9 @@ void AAdrenCharacter::Jump(){
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1000.f, true);
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * 0.5f, true);
+				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1500.f, true);
+				}
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -183,7 +192,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	DrainLife(ShouldDrainHealth, DeltaTime);
 
 	if (GetVelocity().SizeSquared2D() > MaxSpeed) {
-		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2500);
+		PlayerMovementComp->Velocity = GetVelocity().GetClampedToMaxSize2D(2300);
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
@@ -243,6 +252,10 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			CustomTimeDilation = 1.0f;
 			bCanGenerateSloMo = true;
 			bSloMo = false;
+			FPostProcessSettings Temp{};
+			Temp.bOverride_WhiteTemp = true;
+			Temp.WhiteTemp = 6500.f;
+			PlayerCam->PostProcessSettings = Temp;
 		}
 	}
 
@@ -271,6 +284,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 void AAdrenCharacter::StopSliding()
 {
+	DecreaseFOV();
 	CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
 	if (MovementState == EPlayerMovementState::Dashing) return;
 	StopCrouching();
@@ -316,6 +330,7 @@ void AAdrenCharacter::PickupWeapon(AActor* Weapon, WeaponType WeaponType)
 
 void AAdrenCharacter::StartSlide()
 {
+	IncreaseFOV();
 	FVector SlideImpulse = GetVelocity() * SlideImpulseForce;
 	PlayerMovementComp->AddImpulse(SlideImpulse);
 	MovementState = EPlayerMovementState::Sliding;
@@ -364,26 +379,42 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	GameMode->ResetComboCount();
+	if (HitSound != nullptr) {
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
+	}
 	Health -= DamageDelta;
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
 		PlayerDie();
+		
 	}
 	else {
 		if (PlayerCameraShake->CameraShake) {
 			CamManager->StartCameraShake(PlayerCameraShake->CameraShake, 1.0f);
 		}
-		
 	}
 }
 
 void AAdrenCharacter::PlayerDie()
 {
+	PlayerState = EPlayerState::Dead;
+	CamManager->StopAllCameraShakes(true);
+	DisableInput(AdrenPlayerController);
+	PlayerCam->SetFieldOfView(PreviousFOV);
+	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
+	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+	FTimerHandle DeathTimer{};
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &AAdrenCharacter::PlayerDead, 0.1f, false);
+}
+
+void AAdrenCharacter::PlayerDead()
+{
+	//Trigger Event that tells the GameMode that the player died.
 	FString LevelString = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	FName LevelName = FName(LevelString);
 	UGameplayStatics::OpenLevel(GetWorld(), LevelName);
-	//Trigger Event that tells the GameMode that the player died.
 }
 
 void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
@@ -394,11 +425,45 @@ void AAdrenCharacter::Look(const FInputActionInstance& Instance) {
 
 void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 	if (!PlayerMovementComp->IsMovingOnGround() && bCanDash) {
+		IncreaseFOV();
 		PlayerMovementComp->Velocity = FVector::ZeroVector;
 		PlayerMovementComp->AddImpulse((PlayerCam->GetForwardVector() + FVector::UpVector * 0.2f) * DashImpulseForce);
 		MovementState = EPlayerMovementState::Dashing;
 		MovementStateDelegate.ExecuteIfBound();
 		bCanDash = false;
+	}
+}
+
+void AAdrenCharacter::IncreaseFOV(){
+	if (!GetWorld()) return;
+	if (!RunStarted) return;
+	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
+
+	GetWorldTimerManager().SetTimer(FOVTimerHandle, [this]() {
+		InterpFOV(HighSpeedFOV, GetWorld()->GetDeltaSeconds()); 
+		} ,GetWorld()->GetDeltaSeconds(), true);
+}
+
+void AAdrenCharacter::DecreaseFOV() {
+	if (!RunStarted) return;
+	if (!GetWorld()) return;
+	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
+
+	GetWorldTimerManager().SetTimer(FOVTimerHandle, [this]() {
+		InterpFOV(PreviousFOV, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void AAdrenCharacter::InterpFOV(float TargetFOV, float DeltaTime) {
+	if (!GetWorld()) return; 
+	if (!RunStarted) return;
+	float CurrentFOV = PlayerCam->FieldOfView;
+	float InterpedFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, FOVInterpSpeed);
+	PlayerCam->SetFieldOfView(InterpedFOV);
+
+	if (FMath::IsNearlyEqual(InterpedFOV, TargetFOV, 0.01f)) {
+		PlayerCam->SetFieldOfView(TargetFOV);
+		GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 	}
 }
 
@@ -410,6 +475,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 	}
 	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EquippedWeapon->SetLifeTimer();
+	HUDWidget->SetOutOfAmmoVisiblilty(ESlateVisibility::Hidden);
 	//Simulate physics on it if not already simulating
 	EquippedWeapon->GetGunMesh()->SetSimulatePhysics(true);
 	//Tell the anim instance that we don't have a weapon.
@@ -434,6 +500,7 @@ void AAdrenCharacter::Throw(const FInputActionInstance& Instance){
 void AAdrenCharacter::ThrowWhenEmpty(const FInputActionInstance& Instance){
 	if (Ammo == 0) {
 		Throw(Instance);
+		HUDWidget->SetOutOfAmmoVisiblilty(ESlateVisibility::Hidden);
 	}
 }
 
@@ -463,7 +530,11 @@ void AAdrenCharacter::ShootFullAuto(const FInputActionInstance& Instance) {
 	Ammo--;
 	if (HUDWidget) {
 		HUDWidget->SetAmmoCounter(Ammo);
+		if (Ammo == 0) {
+			HUDWidget->SetOutOfAmmoVisiblilty(ESlateVisibility::Visible);
+		}
 	}
+
 	GetWorldTimerManager().SetTimer(WeaponHandle, this, &AAdrenCharacter::ResetTrigger, FullAutoTriggerCooldown, false);
 	bCanFire = false;
 
@@ -476,6 +547,10 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 	
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.5f);
 	CustomTimeDilation = 1.2f;
+	FPostProcessSettings Temp{};
+	Temp.bOverride_WhiteTemp = true;
+	Temp.WhiteTemp = 4000.f;
+	PlayerCam->PostProcessSettings = Temp;
 
 }
 
@@ -483,8 +558,13 @@ void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
 	if (MovementState == EPlayerMovementState::WallRunning) return;
 	EnableKickHitbox();
+	
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
 	GetWorldTimerManager().SetTimer(KickTimerHandle, this, &AAdrenCharacter::StopKicking, KickDuration, false);
+}
+
+void AAdrenCharacter::HitStun(){
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 }
 	
 
@@ -501,6 +581,7 @@ void AAdrenCharacter::StopKicking(){
 
 void AAdrenCharacter::EndDash(){
 	StopKicking();
+	DecreaseFOV();
 	if (MovementState == EPlayerMovementState::Crouching) {
 		StopCrouching();
 	}
@@ -511,20 +592,40 @@ void AAdrenCharacter::EndDash(){
 }
 
 void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
+	GEngine->AddOnScreenDebugMessage(4, 5.f, FColor::Red, OtherComp->GetName());
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (KickOnce && HitActor) {
+		if (KickCameraShake->CameraShake) {
+			CamManager->StartCameraShake(KickCameraShake->CameraShake, 1.0f);
+		}
+
+		if (KickHitSound != nullptr) {
+			UGameplayStatics::PlaySound2D(GetWorld(), KickHitSound);
+		}
+
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {
 			HitActor->DamageTaken(true, SlideKickDamage, this, FVector::ZeroVector, NAME_None, false, true);
 		}
 		else {
 			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			FTimerHandle HitStun{};
+			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
 		}
 		if (MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
 			PlayerMovementComp->Velocity = GetVelocity() * 0.5f; 
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			FTimerHandle HitStun{};
+			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			
+
 		}
 		if (MovementState == EPlayerMovementState::Sliding) {
 			PlayerMovementComp->Velocity = GetVelocity() * 0.9f;
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+			FTimerHandle HitStun{};
+			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, SlideHitStunDuration, false);
 		}
 		KickOnce = false;
 		FTimerHandle CanKickAgainHandle{};
@@ -590,9 +691,56 @@ void AAdrenCharacter::BeginCrouch()
 	MovementState = EPlayerMovementState::Crouching;
 	MovementStateDelegate.ExecuteIfBound();
 	PlayerCapsule->SetCapsuleHalfHeight(CrouchedCapsuleHalfHeight);
+	InterpCameraStandToCrouch();
+}
+
+void AAdrenCharacter::InterpCameraStandToCrouch(){
+	if (!GetWorld()) return;
+	if (!RunStarted) return;
+	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+
+	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
+	InterpedLocation = FVector(0, 0, CurrentCameraLocation.Z - CrouchedCapsuleHalfHeight);
+
+	GetWorldTimerManager().SetTimer(CrouchStandTimer, [this]() {
+		SmoothCrouchStandInterp(InterpedLocation, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+
+	
+}
+
+void AAdrenCharacter::InterpCameraCrouchToStand(){
+	if (!GetWorld()) return;
+	if (!RunStarted) return;
+	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+
+	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
+	InterpedLocation = FVector(0, 0, CurrentCameraLocation.Z + CrouchedCapsuleHalfHeight);
+
+	GetWorldTimerManager().SetTimer(CrouchStandTimer, [this]() {
+		SmoothCrouchStandInterp(InterpedLocation, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+
+}
+
+void AAdrenCharacter::SmoothCrouchStandInterp(FVector Target, float DeltaTime){
+	FVector CurrentLocation = PlayerCam->GetRelativeLocation();
+	//FVector TargetLocation = FMath::VInterpTo(CurrentLocation, Target, DeltaTime, 5.f);
+	FVectorSpringState SpringState{};
+	FVector TargetLocation = UKismetMathLibrary::VectorSpringInterp(CurrentLocation, Target, SpringState, 5000.f, 0.1f, DeltaTime);
+
+	PlayerCam->SetRelativeLocation(TargetLocation.GetClampedToSize(CrouchedCapsuleHalfHeight, CapsuleHalfHeight));
+
+	if (FVector::Dist(CurrentLocation, TargetLocation) <= KINDA_SMALL_NUMBER) {
+		PlayerCam->SetRelativeLocation(TargetLocation);
+		GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+	}
 }
 
 void AAdrenCharacter::StopCrouching(){
+
+	InterpCameraCrouchToStand();
+
 	TArray<AActor*> IgnoreSelf{};
 	IgnoreSelf.AddUnique(this);
 	if (EquippedWeapon != nullptr) {
