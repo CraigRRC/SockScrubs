@@ -379,6 +379,9 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	GameMode->ResetComboCount();
+	if (HitSound != nullptr) {
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
+	}
 	Health -= DamageDelta;
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
@@ -594,6 +597,10 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 	if (KickOnce && HitActor) {
 		if (KickCameraShake->CameraShake) {
 			CamManager->StartCameraShake(KickCameraShake->CameraShake, 1.0f);
+		}
+
+		if (KickHitSound != nullptr) {
+			UGameplayStatics::PlaySound2D(GetWorld(), KickHitSound);
 		}
 
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {

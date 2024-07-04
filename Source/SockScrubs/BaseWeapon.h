@@ -78,11 +78,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	TSubclassOf<class ABaseProjectile> ProjectileToSpawn{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* GunSound{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* PickupSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HitSound{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	TSubclassOf<UCameraShakeBase> GunCameraShake{};
@@ -99,11 +102,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	float BulletRadius{ 5.f };
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
 	class UMaterialInterface* BulletImpact{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
 	class UNiagaraSystem* BloodSplatter{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
+	class UNiagaraSystem* BulletSparks{};
 
 	bool DoOnce{ true };
 

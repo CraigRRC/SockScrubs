@@ -255,6 +255,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraShakeSourceComponent* PlayerCameraShake{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HitSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* KickHitSound{};
+
+
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
 
