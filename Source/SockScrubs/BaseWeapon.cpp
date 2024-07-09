@@ -55,7 +55,13 @@ void ABaseWeapon::PlayPickupSound(){
 void ABaseWeapon::OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
 	if (HitActor && DoOnce) {
-		HitActor->DamageTaken(true, ThrownDamage, this);
+		USphereComponent* Head = Cast<USphereComponent>(OtherComp);
+		if (Head) {
+			HitActor->DamageTaken(true, 100.f, this, FVector::ZeroVector, NAME_None, true);
+		}
+		else {
+			HitActor->DamageTaken(true, ThrownDamage, this);
+		}
 		DoOnce = false;
 		FTimerHandle DoOnceHandle{};
 		GetWorldTimerManager().SetTimer(DoOnceHandle, this, &ABaseWeapon::ResetDoOnce, 1.f, false);

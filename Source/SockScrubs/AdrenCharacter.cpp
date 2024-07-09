@@ -109,7 +109,7 @@ void AAdrenCharacter::Jump(){
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1500.f, true);
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
 				}
 				
 				MovementState = EPlayerMovementState::WallRunning;
@@ -121,7 +121,7 @@ void AAdrenCharacter::Jump(){
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 1500.f, true);
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
 				}
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
@@ -378,7 +378,7 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 }
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
-	GameMode->ResetComboCount();
+	//GameMode->ResetComboCount();
 	if (HitSound != nullptr) {
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
 	}
