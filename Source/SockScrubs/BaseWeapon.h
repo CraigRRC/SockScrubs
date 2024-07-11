@@ -111,6 +111,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
 	class UNiagaraSystem* BulletSparks{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
+	class UNiagaraSystem* MuzzleFlash{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
+	class USceneComponent* MuzzleFlashLocation{};
+	
+
 	bool DoOnce{ true };
 
 	void ResetDoOnce();

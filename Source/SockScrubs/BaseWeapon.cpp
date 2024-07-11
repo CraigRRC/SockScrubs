@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/SceneComponent.h"
 #include "BaseProjectile.h"
 #include "Kismet/GameplayStatics.h"
 #include "Damage.h"
@@ -21,6 +22,7 @@ ABaseWeapon::ABaseWeapon()
 	TempGunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TempMesh"));
 	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProbablyRealMesh"));
 	StunCollider = CreateDefaultSubobject<USphereComponent>(TEXT("StunCollision"));
+	MuzzleFlashLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleFlashLocation"));
 	StunCollider->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	PickupCollider = CreateDefaultSubobject<USphereComponent>(TEXT("PickupCollision"));
 	SetRootComponent(TempGunMesh);
@@ -28,7 +30,9 @@ ABaseWeapon::ABaseWeapon()
 	StunCollider->SetupAttachment(RootComponent);
 	StunCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PickupCollider->SetupAttachment(RootComponent);
+	MuzzleFlashLocation->SetupAttachment(RootComponent);
 	StunCollider->OnComponentBeginOverlap.AddDynamic(this, &ABaseWeapon::OnStunColliderBeginOverlap);
+
 }
 
 // Called when the game starts or when spawned
@@ -118,6 +122,10 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			}
 			
 		}
+	}
+
+	if (MuzzleFlash != nullptr && GetWorld() != nullptr) {
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlash, MuzzleFlashLocation->GetComponentLocation(), MuzzleFlashLocation->GetComponentRotation());
 	}
 }
 
