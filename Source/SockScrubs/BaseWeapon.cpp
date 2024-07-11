@@ -12,6 +12,8 @@
 #include "Damage.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+
 
 
 // Sets default values
@@ -125,7 +127,7 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 	}
 
 	if (MuzzleFlash != nullptr && GetWorld() != nullptr) {
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlash, MuzzleFlashLocation->GetComponentLocation(), MuzzleFlashLocation->GetComponentRotation());
+		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, MuzzleFlashLocation, NAME_None, MuzzleFlashLocation->GetComponentLocation(), MuzzleFlashLocation->GetComponentRotation(), EAttachLocation::KeepWorldPosition, true);
 	}
 }
 
