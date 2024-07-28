@@ -56,6 +56,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	class UPlayerHUDWidget* HUDWidget{};
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	class UVHS_Anim* VHSWidget{};
+
 	UFUNCTION()
 	virtual void PickupWeapon(AActor* Weapon, WeaponType WeaponType) override;
 

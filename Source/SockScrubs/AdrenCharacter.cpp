@@ -14,6 +14,7 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerHUDWidget.h"
+#include "VHS_Anim.h"
 #include "AdrenGameMode.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -399,6 +400,8 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 void AAdrenCharacter::PlayerDie()
 {
 	PlayerState = EPlayerState::Dead;
+	VHSWidget->SetOwningPlayer(AdrenPlayerController);
+	VHSWidget->AddToPlayerScreen();
 	CamManager->StopAllCameraShakes(true);
 	DisableInput(AdrenPlayerController);
 	PlayerCam->SetFieldOfView(PreviousFOV);
