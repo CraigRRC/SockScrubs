@@ -104,7 +104,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			FHitResult BloodSplatterHit{};
 			GetWorld()->LineTraceSingleByChannel(BloodSplatterHit, GetActorLocation() + FVector::UpVector * 180.f, (GetActorLocation() + FVector::UpVector * 180.f) + GetActorForwardVector() * -1000.f, ECollisionChannel::ECC_Visibility);
 			if (BloodSplatterHit.bBlockingHit) {
-				UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BloodSplat, FVector(35, 200, 200), BloodSplatterHit.ImpactPoint, BloodSplatterHit.ImpactNormal.Rotation(), 10.f);
+				UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BloodSplat, BloodSplatSize, BloodSplatterHit.ImpactPoint, FRotator(BloodSplatterHit.ImpactNormal.Rotation().Pitch, BloodSplatterHit.ImpactNormal.Rotation().Yaw, FMath::RandRange(0, 360)), 10.f);
 			}
 		}
 		

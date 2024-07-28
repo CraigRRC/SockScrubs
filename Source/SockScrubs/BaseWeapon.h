@@ -116,8 +116,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
 	class USceneComponent* MuzzleFlashLocation{};
-	
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
+	FVector BulletHoleSize{ 4, 16, 16 };
+	
 	bool DoOnce{ true };
 
 	void ResetDoOnce();

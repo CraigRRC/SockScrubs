@@ -58,8 +58,11 @@ protected:
 
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	class UMaterialInterface* BloodSplat{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	FVector BloodSplatSize{ 35, 200, 200 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class UPointLightComponent* IntentionHint{};
