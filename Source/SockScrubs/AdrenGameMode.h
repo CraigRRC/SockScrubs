@@ -32,6 +32,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool CollectEnemies{ false };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Run)
+	bool bLevelIsRun{ true };
+
 	UFUNCTION()
 	void StartRun();
 

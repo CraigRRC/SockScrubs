@@ -18,7 +18,8 @@ AAdrenGameMode::AAdrenGameMode(){
 
 void AAdrenGameMode::BeginPlay(){
 	Super::BeginPlay();
-	if (BeginRunWidget != nullptr && GetWorld() != nullptr) {
+
+	if (BeginRunWidget != nullptr && GetWorld() != nullptr && bLevelIsRun) {
 		BeginRunWidget->SetOwningPlayer(GetWorld()->GetFirstPlayerController());
 	}
 
@@ -67,10 +68,13 @@ void AAdrenGameMode::PassSensitivityToPlayer(float Value){
 }
 
 void AAdrenGameMode::StartRun() {
-	BeginRunWidget->RemoveFromParent();
-	GetWorld()->GetFirstPlayerController()->SetPause(false);
-	PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
-	bRunStarted = true;
+	if (bLevelIsRun) {
+		BeginRunWidget->RemoveFromParent();
+		GetWorld()->GetFirstPlayerController()->SetPause(false);
+		PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
+		bRunStarted = true;
+	}
+	
 }
 
 void AAdrenGameMode::PauseGame(){
@@ -144,12 +148,17 @@ void AAdrenGameMode::CheckForPlayer()
 
 void AAdrenGameMode::BindStartRunDelegate()
 {
-	Player->StartRunDelegate.BindUObject(this, &AAdrenGameMode::StartRun);
+	if (bLevelIsRun) {
+		Player->StartRunDelegate.BindUObject(this, &AAdrenGameMode::StartRun);
+	}
 }
+	
 
 void AAdrenGameMode::AddStartRunWidgetToScreen()
 {
-	BeginRunWidget->AddToPlayerScreen();
-	GetWorld()->GetFirstPlayerController()->Pause();
+	if (bLevelIsRun) {
+		BeginRunWidget->AddToPlayerScreen();
+		GetWorld()->GetFirstPlayerController()->Pause();
+	}
 }
 
