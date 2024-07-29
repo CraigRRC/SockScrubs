@@ -119,13 +119,10 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			
 		}
 		else {
-			
-
 			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletImpact, BulletHoleSize, Hit.ImpactPoint, FRotator(Hit.ImpactPoint.Rotation().Pitch, Hit.ImpactPoint.Rotation().Yaw, FMath::RandRange(0, 360)), 10.f);
 			if (BulletSparks != nullptr && GetWorld() != nullptr) {
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletSparks, Hit.ImpactPoint, Hit.ImpactNormal.ToOrientationRotator());
 			}
-			
 		}
 	}
 
