@@ -17,6 +17,7 @@
 #include "VHS_Anim.h"
 #include "AdrenGameMode.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/AudioComponent.h"
 
 
 // Sets default values
@@ -398,7 +399,6 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
 		PlayerDie();
-		
 	}
 	else {
 		if (PlayerCameraShake->CameraShake) {
@@ -410,6 +410,10 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 void AAdrenCharacter::PlayerDie()
 {
 	PlayerState = EPlayerState::Dead;
+	if (DeathGrunt != nullptr) {
+		
+	}
+	
 	VHSWidget->SetOwningPlayer(AdrenPlayerController);
 	VHSWidget->AddToPlayerScreen();
 	CamManager->StopAllCameraShakes(true);
