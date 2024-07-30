@@ -269,6 +269,12 @@ protected:
 
 	bool bCanJumpGrunt{ true };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* DeathGrunt{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* DeathSFX{};
+
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
 
