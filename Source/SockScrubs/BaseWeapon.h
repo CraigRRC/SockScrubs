@@ -79,6 +79,9 @@ protected:
 	TSubclassOf<class ABaseProjectile> ProjectileToSpawn{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	float SFXVolume{ 1.0f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* GunSound{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)

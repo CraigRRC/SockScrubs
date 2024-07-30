@@ -272,6 +272,12 @@ protected:
 	bool bCanJumpGrunt{ true };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	TArray<USoundBase*> Grunts{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	float SFXVolume{ 1.0f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* DeathGrunt{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)

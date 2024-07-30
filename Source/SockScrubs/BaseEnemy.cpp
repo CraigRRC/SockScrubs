@@ -110,7 +110,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		
 		if (!Headshot) {
 			if (DeathSound) {
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), 1.0f, 1.0f);
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), SFXVolume, 1.0f);
 			}
 			if (Kicked) {
 				EnemyMesh->SetSimulatePhysics(true);
@@ -130,7 +130,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 1.0f);
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), SFXVolume, 1.0f);
 		}
 		
 	}

@@ -83,6 +83,9 @@ protected:
 	TArray<USoundBase*> DeathSounds{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	float SFXVolume{ 1.0f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	USoundAttenuation* HeadshotAttenuation{};
 
 

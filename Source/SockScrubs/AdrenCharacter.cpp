@@ -84,7 +84,7 @@ void AAdrenCharacter::Jump(){
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		Super::Jump();
 		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
-			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)]);
+			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
 			bCanJumpGrunt = false;
 		}
 		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
@@ -108,7 +108,7 @@ void AAdrenCharacter::Jump(){
 		}
 		Super::Jump();
 		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
-			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)]);
+			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
 			bCanJumpGrunt = false;
 		}
 		
@@ -391,11 +391,11 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	//GameMode->ResetComboCount();
-	if (DeathGrunt != nullptr) {
-		UGameplayStatics::PlaySound2D(GetWorld(), DeathGrunt, 1.0f);
+	if (Grunts.Num() > 0) {
+		UGameplayStatics::PlaySound2D(GetWorld(), Grunts[FMath::RandRange(0, Grunts.Num() - 1)], SFXVolume);
 	}
 	if (HitSound != nullptr) {
-		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, SFXVolume);
 	}
 	Health -= DamageDelta;
 	
@@ -403,7 +403,7 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
 		ShouldDrainHealth = false;
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathGrunt, GetActorLocation(), 10.f);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathGrunt, GetActorLocation(), SFXVolume);
 		FTimerHandle GruntSFXDelay{};
 		GetWorldTimerManager().SetTimer(GruntSFXDelay, this, &AAdrenCharacter::PlayDeathSFX, 0.02f, false);
 		PlayerDie();
@@ -417,7 +417,7 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 
 void AAdrenCharacter::PlayDeathSFX()
 {
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSFX, GetActorLocation(), 1.f);
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSFX, GetActorLocation(), SFXVolume);
 }
 
 void AAdrenCharacter::PlayerDie()
@@ -626,7 +626,7 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 		}
 
 		if (KickHitSound != nullptr) {
-			UGameplayStatics::PlaySound2D(GetWorld(), KickHitSound);
+			UGameplayStatics::PlaySound2D(GetWorld(), KickHitSound, SFXVolume);
 		}
 
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {
