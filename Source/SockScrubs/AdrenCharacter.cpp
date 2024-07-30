@@ -398,9 +398,14 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
 	}
 	Health -= DamageDelta;
+	
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
+		ShouldDrainHealth = false;
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathGrunt, GetActorLocation(), 10.f);
+		FTimerHandle GruntSFXDelay{};
+		GetWorldTimerManager().SetTimer(GruntSFXDelay, this, &AAdrenCharacter::PlayDeathSFX, 0.02f, false);
 		PlayerDie();
 	}
 	else {
@@ -408,6 +413,11 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 			CamManager->StartCameraShake(PlayerCameraShake->CameraShake, 1.0f);
 		}
 	}
+}
+
+void AAdrenCharacter::PlayDeathSFX()
+{
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSFX, GetActorLocation(), 1.f);
 }
 
 void AAdrenCharacter::PlayerDie()

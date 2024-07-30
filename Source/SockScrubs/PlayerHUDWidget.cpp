@@ -17,6 +17,18 @@ void UPlayerHUDWidget::SetAmmoCounterVisibility(ESlateVisibility V){
 	AmmoCounter->SetVisibility(V);
 }
 
+void UPlayerHUDWidget::SetHealthBarVisibility(ESlateVisibility V){
+	AdrenalineBar->SetVisibility(V);
+}
+
+void UPlayerHUDWidget::SetCrosshairVisibility(ESlateVisibility V){
+	Crosshair->SetVisibility(V);
+}
+
+void UPlayerHUDWidget::SetSloMoBarVisibility(ESlateVisibility V){
+	SloMoBar->SetVisibility(V);
+}
+
 void UPlayerHUDWidget::SetAdrenalineBarPercent(float HealthAsPercent){
 	AdrenalineBar->SetPercent(HealthAsPercent);
 }
