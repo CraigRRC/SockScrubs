@@ -82,6 +82,10 @@ void AAdrenCharacter::Destroyed()
 void AAdrenCharacter::Jump(){
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		Super::Jump();
+		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
+			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)]);
+			bCanJumpGrunt = false;
+		}
 		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
 		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 		if (LeftOfPlayerHit.bBlockingHit) {
@@ -102,6 +106,11 @@ void AAdrenCharacter::Jump(){
 			StopCrouching();
 		}
 		Super::Jump();
+		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
+			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)]);
+			bCanJumpGrunt = false;
+		}
+		
 
 		if (!PlayerMovementComp->IsMovingOnGround()) {
 			
@@ -198,6 +207,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
 		bCanDash = true;
+		bCanJumpGrunt = true;
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround()) {

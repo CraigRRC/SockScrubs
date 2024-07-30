@@ -264,6 +264,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* KickHitSound{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	TArray<USoundBase*> JumpSounds{};
+
+	bool bCanJumpGrunt{ true };
 
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
