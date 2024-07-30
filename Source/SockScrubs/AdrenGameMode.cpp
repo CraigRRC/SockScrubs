@@ -72,6 +72,9 @@ void AAdrenGameMode::StartRun() {
 		BeginRunWidget->RemoveFromParent();
 		GetWorld()->GetFirstPlayerController()->SetPause(false);
 		PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetHealthBarVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetSloMoBarVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetCrosshairVisibility(ESlateVisibility::Visible);
 		bRunStarted = true;
 	}
 	

@@ -68,6 +68,8 @@ public:
 	UFUNCTION()
 	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) override;
 
+	void PlayDeathSFX();
+
 	void PlayerDie();
 
 	void PlayerDead();
