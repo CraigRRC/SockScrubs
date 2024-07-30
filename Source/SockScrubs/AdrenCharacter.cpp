@@ -391,6 +391,9 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	//GameMode->ResetComboCount();
+	if (DeathGrunt != nullptr) {
+		UGameplayStatics::PlaySound2D(GetWorld(), DeathGrunt, 1.0f);
+	}
 	if (HitSound != nullptr) {
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
 	}
@@ -410,10 +413,6 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 void AAdrenCharacter::PlayerDie()
 {
 	PlayerState = EPlayerState::Dead;
-	if (DeathGrunt != nullptr) {
-		
-	}
-	
 	VHSWidget->SetOwningPlayer(AdrenPlayerController);
 	VHSWidget->AddToPlayerScreen();
 	CamManager->StopAllCameraShakes(true);
