@@ -118,9 +118,10 @@ void AAdrenCharacter::Jump(){
 			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
-				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
-				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
+				PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
+				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
+					PlayerMovementComp->Velocity = FVector::ZeroVector;
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
 				
 				MovementState = EPlayerMovementState::WallRunning;
@@ -130,9 +131,9 @@ void AAdrenCharacter::Jump(){
 				
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
-				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
-				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
+				PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
+				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
+					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();

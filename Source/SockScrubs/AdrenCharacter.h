@@ -86,7 +86,11 @@ public:
 
 	float KickDuration{ 0.45f };
 
-	float WallJumpForce{ 600.f };
+	float WallJumpForce{ 400.f };
+
+	float WallRunImpulse{ 1500.f };
+
+	float WallRunSuctionImpulse{ 800.f };
 
 
 protected:
