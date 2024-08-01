@@ -260,9 +260,13 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	if (bSloMo) {
 		SloMo = FMath::Clamp(SloMo - DeltaTime, 0, SloMo);
 		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
+
 		if (SloMo == 0.f) {
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 			CustomTimeDilation = 1.0f;
+			if (HeadRushDepleted != nullptr) {
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushDepleted, GetActorLocation(), SFXVolume);
+			}
 			bCanGenerateSloMo = true;
 			bSloMo = false;
 			FPostProcessSettings Temp{};
@@ -277,6 +281,9 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		SloMo = FMath::Clamp(SloMo + DeltaTime / 5, 0, MaxSloMo);
 		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
 		if (SloMo == MaxSloMo) {
+			if (HeadRushAvalible != nullptr) {
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushAvalible, GetActorLocation(), SFXVolume);
+			}
 			bCanGenerateSloMo = false;
 		}
 	}
@@ -292,6 +299,13 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		if (GetVelocity().SquaredLength() < CrouchSpeedSquared) {
 			StopSliding();
 		}
+	}
+}
+
+void AAdrenCharacter::PlayNearFinishedHeadRushSFX()
+{
+	if (HeadRushNearFinished != nullptr) {
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushNearFinished, GetActorLocation(), SFXVolume);
 	}
 }
 
@@ -458,6 +472,10 @@ void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 		MovementState = EPlayerMovementState::Dashing;
 		MovementStateDelegate.ExecuteIfBound();
 		bCanDash = false;
+		if (AirDashGrunt != nullptr) {
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), AirDashGrunt, GetActorLocation(), SFXVolume);
+		}
+		
 	}
 }
 
@@ -571,7 +589,11 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 	if (SloMo != MaxSloMo) return;
 	bSloMo = true;
 	bCanGenerateSloMo = false;
-	
+	if (HeadRushUsage != nullptr) {
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushUsage, GetActorLocation(), SFXVolume);
+	}
+	FTimerHandle LaughSFXDelay{};
+	GetWorldTimerManager().SetTimer(LaughSFXDelay, this, &AAdrenCharacter::PlayNearFinishedHeadRushSFX, 1.1f, false);
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.5f);
 	CustomTimeDilation = 1.2f;
 	FPostProcessSettings Temp{};
