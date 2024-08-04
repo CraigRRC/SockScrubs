@@ -71,6 +71,11 @@ protected:
 
 	virtual void Destroyed() override;
 
+	float LoadedSensitivity{};
+
+	UFUNCTION()
+	void RetrieveLoadedData(const FString& SlotName, const int32 UserIndex, class USaveGame* LoadedGameData);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
 	class UBeginRunWidget* BeginRunWidget{};
 
@@ -122,4 +127,6 @@ protected:
 	bool bRunStarted{ false };
 
 	
+	public:
+		FORCEINLINE float GetLoadedSensitivity() { return LoadedSensitivity; }
 };
