@@ -773,6 +773,8 @@ void AAdrenCharacter::InterpCameraCrouchToStand(){
 }
 
 void AAdrenCharacter::SmoothCrouchStandInterp(FVector Target, float DeltaTime){
+	if (!GetWorld()) return;
+	if (!RunStarted) return;
 	FVector CurrentLocation = PlayerCam->GetRelativeLocation();
 	//FVector TargetLocation = FMath::VInterpTo(CurrentLocation, Target, DeltaTime, 5.f);
 	FVectorSpringState SpringState{};

@@ -29,6 +29,8 @@ public:
 	
 	OnSensUpdatedDelegate OnSensUpdatedDelegate{};
 
+	class UAdrenSaveGame* LoadedSaveGame{};
+
 	UPROPERTY(BlueprintReadWrite)
 	bool CollectEnemies{ false };
 

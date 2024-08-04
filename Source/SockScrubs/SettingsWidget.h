@@ -24,6 +24,10 @@ protected:
 
 	virtual void NativeDestruct() override;
 
+	float TempSens{};
+
+	float TempSliderValue{};
+
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UButton* ApplyButton{};
 

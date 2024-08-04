@@ -9,7 +9,7 @@
 #include "AdrenSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "AdrenGameInstance.h"
-
+#include "AdrenGameMode.h"
 
 
 void USettingsWidget::NativeConstruct(){
@@ -17,10 +17,17 @@ void USettingsWidget::NativeConstruct(){
 	if (Slider) {
 		Slider->OnValueChanged.AddDynamic(this, &USettingsWidget::UpdateValueText);
 		UAdrenGameInstance* GameInstance = Cast<UAdrenGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		AAdrenGameMode* GameMode = Cast<AAdrenGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		if (GameInstance->LoadedSensitivity > 0.f) {
 			Slider->SetValue(GameInstance->LoadedSensitivity);
 			Sens = GameInstance->LoadedSensitivity;
 		}
+
+		if (TempSens > 0.f) {
+			Slider->SetValue(TempSens);
+			Sens = TempSens;
+		}
+
 		if (SenValue) {
 			UpdateValueText(Sens);
 			SenValue->OnTextCommitted.AddDynamic(this, &USettingsWidget::FilterSensitivityText);
@@ -64,6 +71,9 @@ void USettingsWidget::FilterSensitivityText(const FText& Text, ETextCommit::Type
 }
 
 void USettingsWidget::Return(){
+	FString TextAsString = SenValue->GetText().ToString();
+	TempSens = FCString::Atof(*TextAsString);
+
 	RemoveFromParent();
 }
 
