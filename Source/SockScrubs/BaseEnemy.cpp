@@ -115,7 +115,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			if (Kicked) {
 				EnemyMesh->SetSimulatePhysics(true);
 				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
-				EnemyEliminatedDelegate.Execute(this, 1.f);
+				EnemyEliminatedDelegate.Execute(this, 3.f);
 			}
 			else {
 				EnemyMesh->SetSimulatePhysics(true);
