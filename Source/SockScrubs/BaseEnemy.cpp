@@ -142,12 +142,10 @@ void ABaseEnemy::SwitchState(){
 	{
 	case EEnemyState::Ready:
 		HealthWidgetComponent->SetVisibility(false);
-		HealthWidgetComponent->SetComponentTickEnabled(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Activated:
 		HealthWidgetComponent->SetVisibility(false);
-		HealthWidgetComponent->SetComponentTickEnabled(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Combat:
@@ -199,9 +197,7 @@ void ABaseEnemy::SwitchState(){
 		if (!GetWorldTimerManager().IsTimerActive(DeathTimer)) {
 			GetWorldTimerManager().SetTimer(DeathTimer, this, &ABaseEnemy::CleanUp, 15.f, false);
 		}
-		
 		break;
-		
 	default:
 		break;
 	}
@@ -249,14 +245,23 @@ void ABaseEnemy::LookAtPlayer(){
 	float SightDistance{ 5000.f };
 	const TArray<AActor*> Empty{};
 	TArray<FHitResult> HitResults{};
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 185.f, GetActorLocation() + FVector::UpVector * 185.f + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::None, HitResults, true);
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation() + FVector::UpVector * 185.f, GetActorLocation() + FVector::UpVector * 185.f + GetActorForwardVector() * SightDistance, SightRadius, ETraceTypeQuery::TraceTypeQuery1, false, Empty, EDrawDebugTrace::ForOneFrame, HitResults, true);
 	for (FHitResult const &hit : HitResults) {
 		if (hit.bBlockingHit) {
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
 				SeenPlayer = Cast<AAdrenCharacter>(hit.GetActor());
+				if (EnemyWeaponState != EEnemyWeaponState::Disarmed) {
+					EnemyState = EEnemyState::Combat;
+					EnemyStateDelegate.ExecuteIfBound();
+				}
 			}
 			else {
 				SeenPlayer = nullptr;
+				EnemyState = EEnemyState::Activated;
+				EnemyStateDelegate.ExecuteIfBound();
+				if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
+					GetWorldTimerManager().ClearTimer(FireHandle);
+				}
 			}
 		}
 	}
@@ -349,10 +354,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 		break;
 	}
 
-	if (SeenPlayer != nullptr && EnemyWeaponState != EEnemyWeaponState::Disarmed) {
-		EnemyState = EEnemyState::Combat;
-		EnemyStateDelegate.ExecuteIfBound();
-	}
+	
 }
 
 // Called to bind functionality to input
