@@ -109,6 +109,12 @@ protected:
 
 	bool HeadTiltedRight{ false };
 
+	void IncreaseTilt(float TiltIncrement);
+
+	void DecreaseTilt(float TiltIncrement);
+
+	void InterpTilt(float TiltIncrement, float DeltaTime);
+
 	virtual void Jump() override;
 
 	bool KickOnce{ true };
