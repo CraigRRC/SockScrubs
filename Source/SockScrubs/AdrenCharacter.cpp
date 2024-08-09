@@ -80,6 +80,12 @@ void AAdrenCharacter::Destroyed()
 	}
 }
 
+void AAdrenCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult){
+	Super::CalcCamera(DeltaTime, OutResult);
+
+	OutResult.Rotation += CameraTiltOffset;
+}
+
 void AAdrenCharacter::Jump(){
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		Super::Jump();
@@ -93,9 +99,10 @@ void AAdrenCharacter::Jump(){
 			
 			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce , true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
+			
 		}
 		if (RightOfPlayerHit.bBlockingHit) {
-
+			
 			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		}
@@ -119,11 +126,12 @@ void AAdrenCharacter::Jump(){
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
+				CameraTiltOffset.Roll += MaxHeadTilt;
+				HeadTiltedRight = false;
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
 					PlayerMovementComp->Velocity = FVector::ZeroVector;
 					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
-				
 				MovementState = EPlayerMovementState::WallRunning;
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
@@ -132,6 +140,8 @@ void AAdrenCharacter::Jump(){
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
+				CameraTiltOffset.Roll -= MaxHeadTilt;
+				HeadTiltedRight = true;
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
 					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
@@ -148,6 +158,12 @@ void AAdrenCharacter::Jump(){
 void AAdrenCharacter::FellOffWall() {
 	MovementState = EPlayerMovementState::Running;
 	MovementStateDelegate.ExecuteIfBound();
+	if (HeadTiltedRight) {
+		CameraTiltOffset.Roll += MaxHeadTilt;
+	}
+	else {
+		CameraTiltOffset.Roll -= MaxHeadTilt;
+	}
 }
 
 void AAdrenCharacter::UpdateMovementState()

@@ -83,7 +83,7 @@ public:
 	FTimerHandle WallRunningHandle{};
 
 	float WallRunningDuration{ 2.f };
-	
+
 	void FellOffWall();
 
 	float KickDuration{ 0.45f };
@@ -100,6 +100,14 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void Destroyed() override;
+
+	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult) override;
+
+	FRotator CameraTiltOffset{ FRotator::ZeroRotator };
+
+	float MaxHeadTilt{ 15.f };
+
+	bool HeadTiltedRight{ false };
 
 	virtual void Jump() override;
 
