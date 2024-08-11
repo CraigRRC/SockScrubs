@@ -86,6 +86,37 @@ void AAdrenCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult){
 	OutResult.Rotation += CameraTiltOffset;
 }
 
+void AAdrenCharacter::IncreaseTilt(){
+	if (!GetWorld()) return;
+	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
+	GetWorldTimerManager().SetTimer(TiltTimerHandle, [this]() {
+		InterpTilt(MaxHeadTilt, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void AAdrenCharacter::DecreaseTilt(){
+	if (!GetWorld()) return;
+	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
+	GetWorldTimerManager().SetTimer(TiltTimerHandle, [this]() {
+		InterpTilt(-MaxHeadTilt, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void AAdrenCharacter::InterpTilt(float TiltAmount, float DeltaTime){
+	if (!GetWorld()) return;
+	float CurrentTilt = CameraTiltOffset.Roll;
+	if (ReturnToZero) {
+		TiltAmount = 0;
+	}
+	float InterpedTilt = FMath::FInterpTo(CurrentTilt, TiltAmount, DeltaTime, TiltInterpSpeed);
+	CameraTiltOffset.Roll = InterpedTilt;
+	GEngine->AddOnScreenDebugMessage(13, 1.f, FColor::Blue, FString::Printf(TEXT("%f"), InterpedTilt));
+	if (FMath::IsNearlyEqual(InterpedTilt, TiltAmount, 0.01f && TiltAmount != 0)) {
+		GetWorldTimerManager().ClearTimer(TiltTimerHandle);
+		CameraTiltOffset.Roll = TiltAmount;
+	}
+}
+
 void AAdrenCharacter::Jump(){
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		Super::Jump();
@@ -121,18 +152,21 @@ void AAdrenCharacter::Jump(){
 		
 
 		if (!PlayerMovementComp->IsMovingOnGround()) {
-			
 			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
 			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
+			
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
-				CameraTiltOffset.Roll += MaxHeadTilt;
+				//CameraTiltOffset.Roll += MaxHeadTilt;
+				ReturnToZero = false;
+				IncreaseTilt();
 				HeadTiltedRight = false;
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
 					PlayerMovementComp->Velocity = FVector::ZeroVector;
 					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
 				MovementState = EPlayerMovementState::WallRunning;
+				
 				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
@@ -140,7 +174,9 @@ void AAdrenCharacter::Jump(){
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
-				CameraTiltOffset.Roll -= MaxHeadTilt;
+				//CameraTiltOffset.Roll -= MaxHeadTilt;
+				ReturnToZero = false;
+				DecreaseTilt();
 				HeadTiltedRight = true;
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
 					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
@@ -158,11 +194,15 @@ void AAdrenCharacter::Jump(){
 void AAdrenCharacter::FellOffWall() {
 	MovementState = EPlayerMovementState::Running;
 	MovementStateDelegate.ExecuteIfBound();
+	ReturnToZero = true;
 	if (HeadTiltedRight) {
-		CameraTiltOffset.Roll += MaxHeadTilt;
+		//CameraTiltOffset.Roll += MaxHeadTilt;
+		
+		IncreaseTilt();
 	}
 	else {
-		CameraTiltOffset.Roll -= MaxHeadTilt;
+		//CameraTiltOffset.Roll -= MaxHeadTilt;
+		DecreaseTilt();
 	}
 }
 
@@ -497,7 +537,6 @@ void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 
 void AAdrenCharacter::IncreaseFOV(){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 
 	GetWorldTimerManager().SetTimer(FOVTimerHandle, [this]() {
@@ -506,7 +545,6 @@ void AAdrenCharacter::IncreaseFOV(){
 }
 
 void AAdrenCharacter::DecreaseFOV() {
-	if (!RunStarted) return;
 	if (!GetWorld()) return;
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 
@@ -517,7 +555,6 @@ void AAdrenCharacter::DecreaseFOV() {
 
 void AAdrenCharacter::InterpFOV(float TargetFOV, float DeltaTime) {
 	if (!GetWorld()) return; 
-	if (!RunStarted) return;
 	float CurrentFOV = PlayerCam->FieldOfView;
 	float InterpedFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, FOVInterpSpeed);
 	PlayerCam->SetFieldOfView(InterpedFOV);

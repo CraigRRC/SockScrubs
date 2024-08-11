@@ -109,11 +109,20 @@ protected:
 
 	bool HeadTiltedRight{ false };
 
-	void IncreaseTilt(float TiltIncrement);
+	void IncreaseTilt();
 
-	void DecreaseTilt(float TiltIncrement);
+	void DecreaseTilt();
 
-	void InterpTilt(float TiltIncrement, float DeltaTime);
+	void InterpTilt(float TiltAmount, float DeltaTime);
+
+	bool ReturnToZero{ false };
+
+	UPROPERTY(BlueprintReadWrite)
+	FTimerHandle TiltTimerHandle{};
+
+	float TiltInterpSpeed{ 10.f };
+
+	float TiltIncrement{1};
 
 	virtual void Jump() override;
 
