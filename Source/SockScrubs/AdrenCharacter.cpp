@@ -773,6 +773,7 @@ void AAdrenCharacter::DrainLife(bool ShouldDrainLife, float DeltaTime){
 }
 
 void AAdrenCharacter::GainLife(float HealthRecovery){
+	GEngine->AddOnScreenDebugMessage(12, 1.f, FColor::Black, FString::Printf(TEXT("%f"), HealthRecovery));
 	Health = FMath::Clamp(Health + HealthRecovery, 0, MaxHealth);
 	if (bCanGenerateSloMo) {
 		SloMo = FMath::Clamp(SloMo + 0.1f, 0, MaxSloMo);
