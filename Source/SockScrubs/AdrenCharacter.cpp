@@ -710,24 +710,29 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 		}
 		else {
 			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
-			FTimerHandle HitStun{};
-			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			if (!bSloMo) {
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+				FTimerHandle HitStun{};
+				GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			}
+			
 		}
 		if (MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
 			PlayerMovementComp->Velocity = GetVelocity() * 0.5f; 
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
-			FTimerHandle HitStun{};
-			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
-			
-
+			if (!bSloMo) {
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+				FTimerHandle HitStun{};
+				GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			}
 		}
 		if (MovementState == EPlayerMovementState::Sliding) {
 			PlayerMovementComp->Velocity = GetVelocity() * 0.9f;
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
-			FTimerHandle HitStun{};
-			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, SlideHitStunDuration, false);
+			if (!bSloMo) {
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+				FTimerHandle HitStun{};
+				GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, SlideHitStunDuration, false);
+			}
 		}
 		KickOnce = false;
 		FTimerHandle CanKickAgainHandle{};
@@ -850,7 +855,7 @@ void AAdrenCharacter::StopCrouching(){
 	if (EquippedWeapon != nullptr) {
 		IgnoreSelf.AddUnique(EquippedWeapon);
 	}
-	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * (CapsuleHalfHeight + 20.f), 10.f, ETraceTypeQuery::TraceTypeQuery1, false, IgnoreSelf, EDrawDebugTrace::ForDuration, CheckAboveHead, true);
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * (CapsuleHalfHeight + 50.f), 5.f, ETraceTypeQuery::TraceTypeQuery1, false, IgnoreSelf, EDrawDebugTrace::ForDuration, CheckAboveHead, true);
 	if (!CheckAboveHead.bBlockingHit) {
 		MovementState = EPlayerMovementState::Running;
 		MovementStateDelegate.ExecuteIfBound();
