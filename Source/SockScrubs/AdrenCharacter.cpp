@@ -501,6 +501,7 @@ void AAdrenCharacter::PlayerDie()
 	PlayerCam->SetFieldOfView(PreviousFOV);
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
 	FTimerHandle DeathTimer{};
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
 	GetWorldTimerManager().SetTimer(DeathTimer, this, &AAdrenCharacter::PlayerDead, 0.1f, false);
