@@ -531,6 +531,17 @@ void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 		if (AirDashGrunt != nullptr) {
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), AirDashGrunt, GetActorLocation(), SFXVolume);
 		}
+		if (HeadTiltedRight) {
+			ReturnToZero = true;
+			//CameraTiltOffset.Roll += MaxHeadTilt;
+			IncreaseTilt();
+		}
+		else {
+			ReturnToZero = true;
+			//CameraTiltOffset.Roll -= MaxHeadTilt;
+			DecreaseTilt();
+		}
+
 		
 	}
 }
