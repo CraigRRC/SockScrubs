@@ -124,8 +124,8 @@ void AAdrenCharacter::Jump(){
 			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
 			bCanJumpGrunt = false;
 		}
-		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
-		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
+		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 		if (LeftOfPlayerHit.bBlockingHit) {
 			
 			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce , true);
@@ -137,8 +137,9 @@ void AAdrenCharacter::Jump(){
 			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		}
+			FellOffWall();
 		
-		FellOffWall();
+		
 	}
 	else {
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
@@ -152,10 +153,13 @@ void AAdrenCharacter::Jump(){
 		
 
 		if (!PlayerMovementComp->IsMovingOnGround()) {
-			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
-			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			
 			if (LeftOfPlayerHit.bBlockingHit) {
+				GEngine->AddOnScreenDebugMessage(12, 5.f, FColor::Red, "Here");
+				MovementState = EPlayerMovementState::WallRunning;
+				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
 				//CameraTiltOffset.Roll += MaxHeadTilt;
 				ReturnToZero = false;
@@ -165,14 +169,15 @@ void AAdrenCharacter::Jump(){
 					PlayerMovementComp->Velocity = FVector::ZeroVector;
 					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
-				MovementState = EPlayerMovementState::WallRunning;
 				
-				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 				
 			}
 			if (RightOfPlayerHit.bBlockingHit) {
+				GEngine->AddOnScreenDebugMessage(12, 5.f, FColor::Red, "Here");
+				MovementState = EPlayerMovementState::WallRunning;
+				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
 				//CameraTiltOffset.Roll -= MaxHeadTilt;
 				ReturnToZero = false;
@@ -181,8 +186,6 @@ void AAdrenCharacter::Jump(){
 				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
 					PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
 				}
-				MovementState = EPlayerMovementState::WallRunning;
-				MovementStateDelegate.ExecuteIfBound();
 				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 			}
@@ -288,7 +291,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		}
 
 		if (LeftOfPlayerHit.bBlockingHit) {
-			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddForce(LeftOfPlayerHit.Normal * -500000.f);
 			}
@@ -299,7 +302,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			}
 		}
 		else if (RightOfPlayerHit.bBlockingHit) {
-			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddForce(RightOfPlayerHit.Normal * -500000.f);
 			}
@@ -816,7 +819,6 @@ void AAdrenCharacter::BeginCrouch()
 
 void AAdrenCharacter::InterpCameraStandToCrouch(){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
 
 	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
@@ -831,7 +833,6 @@ void AAdrenCharacter::InterpCameraStandToCrouch(){
 
 void AAdrenCharacter::InterpCameraCrouchToStand(){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
 
 	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
@@ -845,7 +846,6 @@ void AAdrenCharacter::InterpCameraCrouchToStand(){
 
 void AAdrenCharacter::SmoothCrouchStandInterp(FVector Target, float DeltaTime){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	FVector CurrentLocation = PlayerCam->GetRelativeLocation();
 	//FVector TargetLocation = FMath::VInterpTo(CurrentLocation, Target, DeltaTime, 5.f);
 	FVectorSpringState SpringState{};

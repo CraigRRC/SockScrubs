@@ -94,6 +94,7 @@ public:
 
 	float WallRunSuctionImpulse{ 800.f };
 
+	float WallRunBlockingHitLength{ 150.f };
 
 protected:
 	//Overrides
