@@ -82,7 +82,7 @@ public:
 
 	FTimerHandle WallRunningHandle{};
 
-	float WallRunningDuration{ 1.f };
+	float WallRunningDuration{ 1.5f };
 
 	void FellOffWall();
 
@@ -92,11 +92,15 @@ public:
 
 	float WallJumpUpForce{ 0.8f };
 
+	float WallRunVerticalCurveForce{ 650.f };
+
+	float WallRunLineTraceHeight{ 30.f };
+
 	float WallRunImpulse{ 1500.f };
 
 	float WallRunSuctionImpulse{ 800.f };
 
-	float WallRunBlockingHitLength{ 150.f };
+	float WallRunBlockingHitLength{ 100.f };
 
 	bool bStickOnce{ true };
 

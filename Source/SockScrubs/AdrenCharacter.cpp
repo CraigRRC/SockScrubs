@@ -264,8 +264,8 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (!PlayerMovementComp->IsMovingOnGround() && MovementState != EPlayerMovementState::WallRunning) {
 		EndDashOnce = true;
-		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
-		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 		if (LeftOfPlayerHit.bBlockingHit && bStickOnce) {
 			bStickOnce = false;
 			MovementState = EPlayerMovementState::WallRunning;
@@ -275,7 +275,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			ReturnToZero = false;
 			IncreaseTilt();
 			HeadTiltedRight = false;
-			PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
+			PlayerMovementComp->AddImpulse(FVector::UpVector * WallRunVerticalCurveForce, true);
 			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 
 		}
@@ -288,7 +288,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			ReturnToZero = false;
 			DecreaseTilt();
 			HeadTiltedRight = true;
-			PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
+			PlayerMovementComp->AddImpulse(FVector::UpVector * WallRunVerticalCurveForce, true);
 			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 		}
 	}
@@ -297,12 +297,12 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		bCanDash = false;
 		if (GetWorldTimerManager().IsTimerActive(WallRunningHandle)) {
 			if (GetWorldTimerManager().GetTimerElapsed(WallRunningHandle) <= WallRunningDuration / 1.5) {
-				PlayerMovementComp->GravityScale = 0.3;
+				PlayerMovementComp->GravityScale = 1.1;
 			}
 		}
 
 		if (LeftOfPlayerHit.bBlockingHit) {
-			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddForce(LeftOfPlayerHit.Normal * -500000.f);
 			}
@@ -313,7 +313,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			}
 		}
 		else if (RightOfPlayerHit.bBlockingHit) {
-			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddForce(RightOfPlayerHit.Normal * -500000.f);
 			}
@@ -370,6 +370,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			StopSliding();
 		}
 	}
+
 }
 
 void AAdrenCharacter::PlayNearFinishedHeadRushSFX()
