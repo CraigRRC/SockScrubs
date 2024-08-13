@@ -96,6 +96,10 @@ public:
 
 	float WallRunBlockingHitLength{ 150.f };
 
+	bool bStickOnce{ true };
+
+	void ResetWallRun();
+
 protected:
 	//Overrides
 	virtual void BeginPlay() override;
