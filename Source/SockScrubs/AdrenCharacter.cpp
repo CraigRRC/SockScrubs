@@ -264,11 +264,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			ReturnToZero = false;
 			IncreaseTilt();
 			HeadTiltedRight = false;
-			if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
-				PlayerMovementComp->Velocity = FVector::ZeroVector;
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
-			}
-
 			PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 
@@ -283,9 +278,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			ReturnToZero = false;
 			DecreaseTilt();
 			HeadTiltedRight = true;
-			if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed / 2) {
-				PlayerMovementComp->AddImpulse(GetActorForwardVector() * WallRunImpulse, true);
-			}
 			PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
 			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
 		}
