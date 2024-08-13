@@ -187,6 +187,16 @@ void AAdrenCharacter::UpdateMovementState()
 	switch (MovementState)
 	{
 	case Running:
+		ReturnToZero = true;
+		if (HeadTiltedRight) {
+			//CameraTiltOffset.Roll += MaxHeadTilt;
+
+			IncreaseTilt();
+		}
+		else {
+			//CameraTiltOffset.Roll -= MaxHeadTilt;
+			DecreaseTilt();
+		}
 		MaxPlayerSpeed = 950.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 3.f;
@@ -884,12 +894,22 @@ void AAdrenCharacter::StopCrouching(){
 }
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
-	if (MovementState == EPlayerMovementState::WallRunning) return;
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
 	//Dont take any forward or backward input when sliding.
 	if (MovementState == EPlayerMovementState::Sliding) return;
-	AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
+	if (MovementState == EPlayerMovementState::WallRunning) {
+		if (AxisValue2D.Y > 0) {
+			AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
+		}
+		else {
+			AddMovementInput(GetActorForwardVector(), AxisValue2D.Y * 0.1f);
+		}
+	}
+	else {
+		AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
+	}
+	
 	
 }
 
