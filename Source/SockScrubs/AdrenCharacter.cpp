@@ -122,6 +122,7 @@ void AAdrenCharacter::InterpTilt(float TiltAmount, float DeltaTime){
 void AAdrenCharacter::Jump(){
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		Super::Jump();
+		bCanDash = true;
 		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
 			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
 			bCanJumpGrunt = false;
@@ -224,6 +225,7 @@ void AAdrenCharacter::UpdateMovementState()
 		EnableKickHitbox();
 		break;
 	case WallRunning:
+		MaxPlayerSpeed = 1500.f;
 		PlayerMovementComp->GravityScale = 0;
 		PlayerMovementComp->Velocity.Z = 0;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
@@ -248,11 +250,11 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
-		bCanDash = true;
 		bCanJumpGrunt = true;
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround()) {
+		bCanDash = true;
 		if (EndDashOnce) {
 			EndDash();
 			EndDashOnce = false;
@@ -294,6 +296,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 	
 	if (MovementState == EPlayerMovementState::WallRunning) {
+		bCanDash = false;
 		if (GetWorldTimerManager().IsTimerActive(WallRunningHandle)) {
 			if (GetWorldTimerManager().GetTimerElapsed(WallRunningHandle) <= WallRunningDuration / 1.5) {
 				PlayerMovementComp->GravityScale = 0.3;
@@ -380,9 +383,10 @@ void AAdrenCharacter::PlayNearFinishedHeadRushSFX()
 
 void AAdrenCharacter::StopSliding()
 {
+	
 	DecreaseFOV();
 	CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
-	if (MovementState == EPlayerMovementState::Dashing) return;
+	if (MovementState == EPlayerMovementState::Dashing || MovementState == EPlayerMovementState::WallRunning) return;
 	StopCrouching();
 	
 }
