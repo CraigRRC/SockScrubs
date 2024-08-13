@@ -82,13 +82,15 @@ public:
 
 	FTimerHandle WallRunningHandle{};
 
-	float WallRunningDuration{ 2.f };
+	float WallRunningDuration{ 1.f };
 
 	void FellOffWall();
 
 	float KickDuration{ 0.45f };
 
-	float WallJumpForce{ 400.f };
+	float WallJumpForce{ 800.f };
+
+	float WallJumpUpForce{ 0.8f };
 
 	float WallRunImpulse{ 1500.f };
 
