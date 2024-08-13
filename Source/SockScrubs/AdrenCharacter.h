@@ -106,6 +106,8 @@ public:
 
 	void ResetWallRun();
 
+	FTimerHandle StickToWallHandle{};
+
 protected:
 	//Overrides
 	virtual void BeginPlay() override;
