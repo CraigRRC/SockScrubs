@@ -133,14 +133,14 @@ void AAdrenCharacter::Jump(){
 			
 			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce , true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
-			GetWorldTimerManager().SetTimer(StickToWallHandle, this, &AAdrenCharacter::ResetWallRun, 0.5f, false);
+			GetWorldTimerManager().SetTimer(StickToWallHandle, this, &AAdrenCharacter::ResetWallRun, WallRunCooldown, false);
 			
 		}
 		if (RightOfPlayerHit.bBlockingHit) {
 			
 			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
-			GetWorldTimerManager().SetTimer(StickToWallHandle, this, &AAdrenCharacter::ResetWallRun, 0.5f, false);
+			GetWorldTimerManager().SetTimer(StickToWallHandle, this, &AAdrenCharacter::ResetWallRun, WallRunCooldown, false);
 
 		}
 
@@ -225,7 +225,7 @@ void AAdrenCharacter::UpdateMovementState()
 		EnableKickHitbox();
 		break;
 	case WallRunning:
-		MaxPlayerSpeed = 1500.f;
+		MaxPlayerSpeed = 1300.f;
 		PlayerMovementComp->GravityScale = 0;
 		PlayerMovementComp->Velocity.Z = 0;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
