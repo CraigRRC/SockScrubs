@@ -248,6 +248,12 @@ void AAdrenCharacter::UpdateMovementState()
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
+	case Clambering:
+		PlayerMovementComp->GravityScale = 0;
+		PlayerMovementComp->Velocity.Z = 0;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
+		StopKicking();
+
 	default:
 		break;
 	}

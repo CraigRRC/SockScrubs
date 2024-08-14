@@ -26,6 +26,7 @@ enum EPlayerMovementState : uint8 {
 	Sliding UMETA(DisplayName = "Sliding"),
 	Dashing UMETA(DisplayName = "Dashing"),
 	WallRunning UMETA(DisplayName = "WallRunning"),
+	Clambering UMETA(DisplayName = "Clambering"),
 };
 
 UENUM(Blueprintable)
