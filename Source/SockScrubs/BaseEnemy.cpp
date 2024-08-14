@@ -125,14 +125,12 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		}
 	}
 	if (Headshot) {
-		
 		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), SFXVolume, 1.0f);
 		}
-		
 	}
 }
 

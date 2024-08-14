@@ -83,6 +83,10 @@ public:
 
 	FTimerHandle WallRunningHandle{};
 
+	FTimerHandle ClamberHandle{};
+
+	void FinishedClambering();
+
 	float WallRunningDuration{ 2.f };
 
 	void FellOffWall();
@@ -147,6 +151,9 @@ protected:
 
 	FHitResult LeftOfPlayerHit{};
 	FHitResult RightOfPlayerHit{};
+
+	FHitResult FrontOfPlayerFootHit{};
+	FHitResult FrontOfPlayerHit{};
 
 	UPROPERTY(BlueprintReadOnly, Category = Anims)
 	EPlayerWeaponState PlayerWeaponStatus{ EPlayerWeaponState::Unarmed };
