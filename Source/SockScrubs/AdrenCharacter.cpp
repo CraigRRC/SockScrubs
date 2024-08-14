@@ -266,14 +266,15 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (!PlayerMovementComp->IsMovingOnGround() && MovementState != EPlayerMovementState::WallRunning) {
 		EndDashOnce = true;
-		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
-		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		if (!bUsingJumpPad) {
+			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		}
 		if (LeftOfPlayerHit.bBlockingHit && bStickOnce) {
 			bStickOnce = false;
 			MovementState = EPlayerMovementState::WallRunning;
 			MovementStateDelegate.ExecuteIfBound();
 			PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
-			//CameraTiltOffset.Roll += MaxHeadTilt;
 			ReturnToZero = false;
 			IncreaseTilt();
 			HeadTiltedRight = false;
@@ -286,7 +287,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			MovementState = EPlayerMovementState::WallRunning;
 			MovementStateDelegate.ExecuteIfBound();
 			PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
-			//CameraTiltOffset.Roll -= MaxHeadTilt;
 			ReturnToZero = false;
 			DecreaseTilt();
 			HeadTiltedRight = true;

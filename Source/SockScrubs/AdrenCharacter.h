@@ -106,6 +106,9 @@ public:
 
 	void ResetWallRun();
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bUsingJumpPad{ false };
+
 	FTimerHandle StickToWallHandle{};
 
 protected:
