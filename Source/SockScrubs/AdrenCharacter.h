@@ -110,7 +110,7 @@ public:
 
 	void ResetWallRun();
 
-	float WallRunCooldown{ 0.4f };
+	float WallRunCooldown{ 0.2f };
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bUsingJumpPad{ false };
