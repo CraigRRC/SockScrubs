@@ -86,7 +86,7 @@ void AAdrenCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult){
 	OutResult.Rotation += CameraTiltOffset;
 }
 
-void AAdrenCharacter::IncreaseTilt(){
+void AAdrenCharacter::ClockwiseTilt(){
 	if (!GetWorld()) return;
 	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
 	GetWorldTimerManager().SetTimer(TiltTimerHandle, [this]() {
@@ -94,7 +94,7 @@ void AAdrenCharacter::IncreaseTilt(){
 		}, GetWorld()->GetDeltaSeconds(), true);
 }
 
-void AAdrenCharacter::DecreaseTilt(){
+void AAdrenCharacter::CounterClockwiseTilt(){
 	if (!GetWorld()) return;
 	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
 	GetWorldTimerManager().SetTimer(TiltTimerHandle, [this]() {
@@ -169,13 +169,10 @@ void AAdrenCharacter::FellOffWall() {
 	
 	
 	if (HeadTiltedRight) {
-		//CameraTiltOffset.Roll += MaxHeadTilt;
-		
-		IncreaseTilt();
+		ClockwiseTilt();
 	}
 	else {
-		//CameraTiltOffset.Roll -= MaxHeadTilt;
-		DecreaseTilt();
+		CounterClockwiseTilt();
 	}
 	StopCrouching();
 }
@@ -196,11 +193,11 @@ void AAdrenCharacter::UpdateMovementState()
 		if (HeadTiltedRight) {
 			//CameraTiltOffset.Roll += MaxHeadTilt;
 
-			IncreaseTilt();
+			ClockwiseTilt();
 		}
 		else {
 			//CameraTiltOffset.Roll -= MaxHeadTilt;
-			DecreaseTilt();
+			CounterClockwiseTilt();
 		}
 		MaxPlayerSpeed = 950.f;
 		PlayerMovementComp->GroundFriction = 8.f;
@@ -244,7 +241,6 @@ void AAdrenCharacter::UpdateMovementState()
 	default:
 		break;
 	}
-
 	PlayerMovementComp->MaxWalkSpeed = MaxPlayerSpeed;
 }
 
@@ -288,7 +284,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			MovementStateDelegate.ExecuteIfBound();
 			PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
 			ReturnToZero = false;
-			IncreaseTilt();
+			ClockwiseTilt();
 			HeadTiltedRight = false;
 			PlayerMovementComp->AddImpulse(FVector::UpVector * WallRunVerticalCurveForce, true);
 			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
@@ -300,7 +296,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			MovementStateDelegate.ExecuteIfBound();
 			PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
 			ReturnToZero = false;
-			DecreaseTilt();
+			CounterClockwiseTilt();
 			HeadTiltedRight = true;
 			PlayerMovementComp->AddImpulse(FVector::UpVector * WallRunVerticalCurveForce, true);
 			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
@@ -354,8 +350,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 				FellOffWall();
 			}
 		}
-		
-		
 	}
 
 	if (bSloMo) {
@@ -581,13 +575,11 @@ void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 		}
 		if (HeadTiltedRight) {
 			ReturnToZero = true;
-			//CameraTiltOffset.Roll += MaxHeadTilt;
-			IncreaseTilt();
+			ClockwiseTilt();
 		}
 		else {
 			ReturnToZero = true;
-			//CameraTiltOffset.Roll -= MaxHeadTilt;
-			DecreaseTilt();
+			CounterClockwiseTilt();
 		}
 
 		

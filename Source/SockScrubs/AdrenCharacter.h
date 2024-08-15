@@ -131,9 +131,9 @@ protected:
 
 	bool HeadTiltedRight{ false };
 
-	void IncreaseTilt();
+	void ClockwiseTilt();
 
-	void DecreaseTilt();
+	void CounterClockwiseTilt();
 
 	void InterpTilt(float TiltAmount, float DeltaTime);
 
