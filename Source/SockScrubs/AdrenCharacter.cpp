@@ -928,7 +928,6 @@ void AAdrenCharacter::StopCrouching(){
 }
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
-	if (MovementState == EPlayerMovementState::WallRunning) return;
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
 	//Dont take any forward or backward input when sliding.
