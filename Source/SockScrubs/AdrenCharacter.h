@@ -8,7 +8,6 @@
 #include "Damage.h"
 #include "AdrenCharacter.generated.h"
 
-
 DECLARE_DELEGATE(MovementDelegate);
 DECLARE_DELEGATE(StartRunDelegate);
 DECLARE_DELEGATE(PauseGameDelegate);
@@ -84,7 +83,11 @@ public:
 	FTimerHandle WallRunningHandle{};
 
 	FTimerHandle ClamberHandle{};
+
 	void FinishedClambering();
+
+	float WallRunningDuration{ 2.f };
+
 	float WallRunningDuration{ 1.5f };
 
 	void FellOffWall();

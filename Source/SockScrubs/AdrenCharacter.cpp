@@ -44,8 +44,6 @@ AAdrenCharacter::AAdrenCharacter()
 	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
 	PreviousFOV = PlayerCam->FieldOfView;
 	HighSpeedFOV = PreviousFOV + FOVBuffer;
-	
-
 }
 
 
@@ -141,7 +139,6 @@ void AAdrenCharacter::Jump(){
 			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
 			GetWorldTimerManager().ClearTimer(WallRunningHandle);
 			GetWorldTimerManager().SetTimer(StickToWallHandle, this, &AAdrenCharacter::ResetWallRun, WallRunCooldown, false);
-
 		}
 
 			FellOffWall();
@@ -316,7 +313,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			MovementStateDelegate.ExecuteIfBound();
 			PlayerMovementComp->AddForce(FrontOfPlayerFootHit.ImpactNormal * -500000.f);
 			PlayerMovementComp->AddImpulse(FVector::UpVector * 1000.f, true);
-
 		}
 	}
 
@@ -325,8 +321,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			if (!GetWorldTimerManager().IsTimerActive(ClamberHandle)) {
 				GetWorldTimerManager().SetTimer(ClamberHandle, this, &AAdrenCharacter::FinishedClambering, 0.15f, false);
 			}
-			
-			
 		}
 	}
 	
