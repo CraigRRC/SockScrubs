@@ -54,6 +54,9 @@ protected:
 
 	virtual void Destroyed() override;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bDiedToKillZ{ false };
+
 	EnemyStateDelegate EnemyStateDelegate{};
 
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};

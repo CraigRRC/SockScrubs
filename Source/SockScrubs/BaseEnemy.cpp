@@ -95,6 +95,10 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("RightLeg"), true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
 	}
+
+	if (bDiedToKillZ) {
+		EnemyEliminatedDelegate.Execute(this, 5.f);
+	}
 	
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
 	if (ClampedHealth <= 0.f) {

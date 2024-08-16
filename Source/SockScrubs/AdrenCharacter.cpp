@@ -28,7 +28,7 @@ AAdrenCharacter::AAdrenCharacter()
 	MovementState = EPlayerMovementState::Running;
 	PlayerCapsule = GetCapsuleComponent();
 	CapsuleHalfHeight = PlayerCapsule->GetScaledCapsuleHalfHeight();
-	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 2;
+	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 1.6;
 	PlayerMovementComp = GetCharacterMovement();
 	PlayerMesh = GetMesh();
 	PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
