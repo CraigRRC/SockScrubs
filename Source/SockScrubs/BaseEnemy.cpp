@@ -92,8 +92,8 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 
 	if (Tripped) {
 		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f + DamageDealer->GetVelocity(), FName("RightLeg"), true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f + DamageDealer->GetVelocity(), FName("LeftLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f + DamageDealer->GetVelocity(), FName("RightLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f + DamageDealer->GetVelocity(), FName("LeftLeg"), true);
 	}
 	//Temp
 	if (bDiedToKillZ) {
