@@ -92,10 +92,9 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 
 	if (Tripped) {
 		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("RightLeg"), true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f + DamageDealer->GetVelocity(), FName("RightLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f + DamageDealer->GetVelocity(), FName("LeftLeg"), true);
 	}
-
 	//Temp
 	if (bDiedToKillZ) {
 		EnemyEliminatedDelegate.Execute(this, 5.f);
@@ -119,13 +118,16 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			}
 			if (Kicked) {
 				EnemyMesh->SetSimulatePhysics(true);
-				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
+				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f + DamageDealer->GetVelocity(), FName("Spine"), true);
 				EnemyEliminatedDelegate.Execute(this, 3.f);
 			}
 			else {
-				EnemyMesh->SetSimulatePhysics(true);
-				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
-				EnemyEliminatedDelegate.Execute(this, 1.f);
+				//Temp
+				if (!bDiedToKillZ) {
+					EnemyMesh->SetSimulatePhysics(true);
+					EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+					EnemyEliminatedDelegate.Execute(this, 1.f);
+				}
 			}
 		}
 	}

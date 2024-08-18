@@ -201,7 +201,7 @@ void AAdrenCharacter::UpdateMovementState()
 		StopKicking();
 		break;
 	case Crouching:
-		MaxPlayerSpeed = 300.f;
+		MaxPlayerSpeed = 500.f;
 		CrouchSpeedSquared = MaxPlayerSpeed * MaxPlayerSpeed + 5.f;
 		PlayerMovementComp->GroundFriction = 8.f;
 		PlayerMovementComp->GravityScale = 3.f;
@@ -299,8 +299,10 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		}
 		GetWorld()->LineTraceSingleByChannel(FrontOfPlayerFootHit, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 		GetWorld()->LineTraceSingleByChannel(FrontOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2.f, (GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2.f) + GetActorForwardVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+	
 
 		if (FrontOfPlayerFootHit.bBlockingHit && !FrontOfPlayerHit.bBlockingHit) {
+			if (Cast<IDamage>(FrontOfPlayerFootHit.GetActor())) return;
 			MovementState = EPlayerMovementState::Clambering;
 			MovementStateDelegate.ExecuteIfBound();
 			PlayerMovementComp->AddForce(FrontOfPlayerFootHit.ImpactNormal * -500000.f);
