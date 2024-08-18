@@ -221,7 +221,7 @@ void AAdrenCharacter::UpdateMovementState()
 		EnableKickHitbox();
 		break;
 	case WallRunning:
-		MaxPlayerSpeed = 1300.f;
+		MaxPlayerSpeed = 1500.f;
 		PlayerMovementComp->GravityScale = 0;
 		PlayerMovementComp->Velocity.Z = 0;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
@@ -256,6 +256,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (PlayerMovementComp->IsMovingOnGround()) {
 		bCanDash = true;
+		bStickOnce = false;
 		GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		GetWorldTimerManager().ClearTimer(StickToWallHandle);
 		if (EndDashOnce) {
@@ -263,6 +264,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			EndDashOnce = false;
 		}
 	}
+
 	//Clamber debug lines
 		//DrawDebugLine(GetWorld(), GetActorLocation(),(GetActorLocation()) + (GetActorForwardVector() * WallRunBlockingHitLength), FColor::Blue);
 		//DrawDebugLine(GetWorld(), GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2, (GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2) + (GetActorForwardVector() * WallRunBlockingHitLength), FColor::Red);

@@ -96,6 +96,7 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
 	}
 
+	//Temp
 	if (bDiedToKillZ) {
 		EnemyEliminatedDelegate.Execute(this, 5.f);
 	}

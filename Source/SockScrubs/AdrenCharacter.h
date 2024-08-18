@@ -92,7 +92,7 @@ public:
 
 	float KickDuration{ 0.45f };
 
-	float WallJumpForce{ 800.f };
+	float WallJumpForce{ 1000.f };
 
 	float WallJumpUpForce{ 0.8f };
 
@@ -291,7 +291,7 @@ protected:
 
 	float MaxSpeed{ 5290000.f };
 
-	float SlideImpulseForce{ 350.f };
+	float SlideImpulseForce{ 400.f };
 
 	float DashImpulseForce{ 250000.f };
 
