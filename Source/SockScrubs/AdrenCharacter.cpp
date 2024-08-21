@@ -136,9 +136,9 @@ void AAdrenCharacter::Jump(){
 			FellOffWall();
 	}
 	else {
-		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
+		/*if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
 			StopCrouching();
-		}
+		}*/
 		Super::Jump();
 		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
 			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
@@ -259,7 +259,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 		bStickOnce = false;
 		GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		GetWorldTimerManager().ClearTimer(StickToWallHandle);
-		if (EndDashOnce) {
+		if (EndDashOnce && MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
 			EndDashOnce = false;
 		}
@@ -469,7 +469,6 @@ void AAdrenCharacter::CalcFloorInfluence()
 	if (FirstCross.IsNearlyZero()) {
 		DirectionToAddForce = FVector::Zero();
 	}
-	
 	PlayerMovementComp->AddForce(DirectionToAddForce * DownhillForce);
 }
 
@@ -838,7 +837,6 @@ void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
 	if (MovementState == EPlayerMovementState::WallRunning || MovementState == EPlayerMovementState::Dashing) return;
 	if (PlayerCapsule->GetScaledCapsuleHalfHeight() == CapsuleHalfHeight) {
 		BeginCrouch();
-		
 	}
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
@@ -921,6 +919,14 @@ void AAdrenCharacter::StopCrouching(){
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
+	if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X > 0 && LeftOfPlayerHit.bBlockingHit) {
+		bCanDash = true;
+		FellOffWall();
+	}
+	if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X < 0 && RightOfPlayerHit.bBlockingHit) {
+		bCanDash = true;
+		FellOffWall();
+	}
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
 	//Dont take any forward or backward input when sliding.
 	if (MovementState == EPlayerMovementState::Sliding) return;
