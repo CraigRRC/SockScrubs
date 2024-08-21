@@ -139,6 +139,10 @@ protected:
 
 	bool ReturnToZero{ false };
 
+	float SloMoSpeed{ 0.3f };
+
+	float PlayerSpeedInSloMo{ 1.3f };
+
 	UPROPERTY(BlueprintReadWrite)
 	FTimerHandle TiltTimerHandle{};
 
@@ -434,7 +438,7 @@ protected:
 	float SloMo{ 0.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float MaxSloMo{ 2.f };
+	float MaxSloMo{ 3.f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraComponent* PlayerCam{};

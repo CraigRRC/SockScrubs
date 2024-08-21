@@ -252,10 +252,10 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
 		bCanJumpGrunt = true;
+		bCanDash = true;
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround()) {
-		bCanDash = true;
 		bStickOnce = false;
 		GetWorldTimerManager().ClearTimer(WallRunningHandle);
 		GetWorldTimerManager().ClearTimer(StickToWallHandle);
@@ -319,7 +319,6 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 	
 	if (MovementState == EPlayerMovementState::WallRunning) {
-		bCanDash = false;
 		if (GetWorldTimerManager().IsTimerActive(WallRunningHandle)) {
 			if (GetWorldTimerManager().GetTimerElapsed(WallRunningHandle) <= WallRunningDuration / 1.5) {
 				PlayerMovementComp->GravityScale = 1.1;
@@ -373,7 +372,7 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (bCanGenerateSloMo) {
 		//10 seconds
-		SloMo = FMath::Clamp(SloMo + DeltaTime / 5, 0, MaxSloMo);
+		SloMo = FMath::Clamp(SloMo + DeltaTime / 4, 0, MaxSloMo);
 		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
 		if (SloMo == MaxSloMo) {
 			if (HeadRushAvalible != nullptr) {
@@ -696,9 +695,9 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushUsage, GetActorLocation(), SFXVolume);
 	}
 	FTimerHandle LaughSFXDelay{};
-	GetWorldTimerManager().SetTimer(LaughSFXDelay, this, &AAdrenCharacter::PlayNearFinishedHeadRushSFX, 1.1f, false);
-	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.5f);
-	CustomTimeDilation = 1.2f;
+	GetWorldTimerManager().SetTimer(LaughSFXDelay, this, &AAdrenCharacter::PlayNearFinishedHeadRushSFX, 1.7f, false);
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), SloMoSpeed);
+	CustomTimeDilation = PlayerSpeedInSloMo;
 	FPostProcessSettings Temp{};
 	Temp.bOverride_WhiteTemp = true;
 	Temp.WhiteTemp = 4000.f;
@@ -708,7 +707,7 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 
 void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
-	if (MovementState == EPlayerMovementState::WallRunning) return;
+	/*if (MovementState == EPlayerMovementState::WallRunning) return;*/
 	EnableKickHitbox();
 	
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
@@ -908,7 +907,7 @@ void AAdrenCharacter::StopCrouching(){
 		MovementStateDelegate.ExecuteIfBound();
 		PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
 	}
-	if (CheckAboveHead.bBlockingHit) {
+	if (CheckAboveHead.bBlockingHit && PlayerMovementComp->IsMovingOnGround()) {
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Magenta, CheckAboveHead.GetActor()->GetName());
 		MovementState = EPlayerMovementState::Sliding;
 		MovementStateDelegate.ExecuteIfBound();
@@ -919,14 +918,14 @@ void AAdrenCharacter::StopCrouching(){
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
-	if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X > 0 && LeftOfPlayerHit.bBlockingHit) {
+	/*if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X > 0 && LeftOfPlayerHit.bBlockingHit) {
 		bCanDash = true;
 		FellOffWall();
 	}
 	if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X < 0 && RightOfPlayerHit.bBlockingHit) {
 		bCanDash = true;
 		FellOffWall();
-	}
+	}*/
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
 	//Dont take any forward or backward input when sliding.
 	if (MovementState == EPlayerMovementState::Sliding) return;
