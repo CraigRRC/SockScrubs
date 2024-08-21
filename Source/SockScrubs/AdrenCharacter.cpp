@@ -333,7 +333,8 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			}
 			else{
 				GetWorldTimerManager().ClearTimer(WallRunningHandle);
-				PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
+				//PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
+				bCanDash = true;
 				FellOffWall();
 			}
 		}
@@ -344,7 +345,8 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			}
 			else {
 				GetWorldTimerManager().ClearTimer(WallRunningHandle);
-				PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
+				//PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
+				bCanDash = true;
 				FellOffWall();
 			}
 		}
