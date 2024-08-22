@@ -92,7 +92,7 @@ public:
 
 	float KickDuration{ 0.45f };
 
-	float WallJumpForce{ 1000.f };
+	float WallJumpForce{ 1200.f };
 
 	float WallJumpUpForce{ 0.8f };
 
@@ -438,7 +438,7 @@ protected:
 	float SloMo{ 0.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float MaxSloMo{ 3.f };
+	float MaxSloMo{ 2.5f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraComponent* PlayerCam{};
