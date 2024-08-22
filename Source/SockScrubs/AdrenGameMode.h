@@ -107,10 +107,10 @@ protected:
 	uint8 HighestCombo{};
 
 	UPROPERTY(BlueprintReadWrite, Category = Stats)
-	uint8 NumEnemiesInLevel{36};
+	uint8 NumEnemiesInLevel{};
 
-	UPROPERTY(BlueprintReadOnly, Category = Stats)
-	uint8 EnemiesRemainingInLevel{NumEnemiesInLevel}; 
+	UPROPERTY(BlueprintReadWrite, Category = Stats)
+	uint8 EnemiesRemainingInLevel{}; 
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	bool UltraCombo{ false };

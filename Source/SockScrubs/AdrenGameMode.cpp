@@ -26,6 +26,7 @@ void AAdrenGameMode::BeginPlay(){
 	FAsyncLoadGameFromSlotDelegate LoadedDelegate{};
 	LoadedDelegate.BindUObject(this, &AAdrenGameMode::RetrieveLoadedData);
 	UGameplayStatics::AsyncLoadGameFromSlot("SaveSlot1", 0, LoadedDelegate);
+	
 
 }
 
