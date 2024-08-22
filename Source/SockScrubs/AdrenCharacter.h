@@ -319,6 +319,15 @@ protected:
 	class UCameraShakeSourceComponent* PlayerCameraShake{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* BeginSlide{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* DuringSlide{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* EndSlide{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* HitSound{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
