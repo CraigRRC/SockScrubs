@@ -86,7 +86,7 @@ public:
 
 	void FinishedClambering();
 
-	float WallRunningDuration{ 1.5f };
+	float WallRunningDuration{ 2.f };
 
 	void FellOffWall();
 

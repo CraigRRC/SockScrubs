@@ -215,7 +215,7 @@ void AAdrenCharacter::UpdateMovementState()
 		break;
 	case Dashing:
 		PlayerMovementComp->GroundFriction = 8.f;
-		PlayerMovementComp->GravityScale = 5.0f;
+		PlayerMovementComp->GravityScale = 4.0f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
 		EnableKickHitbox();
 		break;
