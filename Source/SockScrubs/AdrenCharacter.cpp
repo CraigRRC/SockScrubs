@@ -14,8 +14,10 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerHUDWidget.h"
+#include "VHS_Anim.h"
 #include "AdrenGameMode.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/AudioComponent.h"
 
 
 // Sets default values
@@ -26,7 +28,7 @@ AAdrenCharacter::AAdrenCharacter()
 	MovementState = EPlayerMovementState::Running;
 	PlayerCapsule = GetCapsuleComponent();
 	CapsuleHalfHeight = PlayerCapsule->GetScaledCapsuleHalfHeight();
-	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 2;
+	CrouchedCapsuleHalfHeight = CapsuleHalfHeight / 1.6;
 	PlayerMovementComp = GetCharacterMovement();
 	PlayerMesh = GetMesh();
 	PlayerCam = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCam"));
@@ -42,9 +44,9 @@ AAdrenCharacter::AAdrenCharacter()
 	KickHitbox->OnComponentBeginOverlap.AddDynamic(this, &AAdrenCharacter::OnKickHitboxBeginOverlap);
 	PreviousFOV = PlayerCam->FieldOfView;
 	HighSpeedFOV = PreviousFOV + FOVBuffer;
-	
-
 }
+
+
 
 // Called when the game starts or when spawned
 void AAdrenCharacter::BeginPlay()
@@ -78,64 +80,100 @@ void AAdrenCharacter::Destroyed()
 	}
 }
 
+void AAdrenCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult){
+	Super::CalcCamera(DeltaTime, OutResult);
+
+	OutResult.Rotation += CameraTiltOffset;
+}
+
+void AAdrenCharacter::ClockwiseTilt(){
+	if (!GetWorld()) return;
+	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
+	GetWorldTimerManager().SetTimer(TiltTimerHandle, [this]() {
+		InterpTilt(MaxHeadTilt, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void AAdrenCharacter::CounterClockwiseTilt(){
+	if (!GetWorld()) return;
+	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
+	GetWorldTimerManager().SetTimer(TiltTimerHandle, [this]() {
+		InterpTilt(-MaxHeadTilt, GetWorld()->GetDeltaSeconds());
+		}, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void AAdrenCharacter::InterpTilt(float TiltAmount, float DeltaTime){
+	if (!GetWorld()) return;
+	float CurrentTilt = CameraTiltOffset.Roll;
+	if (ReturnToZero) {
+		TiltAmount = 0;
+	}
+	float InterpedTilt = FMath::FInterpTo(CurrentTilt, TiltAmount, DeltaTime, TiltInterpSpeed);
+	CameraTiltOffset.Roll = InterpedTilt;
+	GEngine->AddOnScreenDebugMessage(13, 1.f, FColor::Blue, FString::Printf(TEXT("%f"), InterpedTilt));
+	if (FMath::IsNearlyEqual(InterpedTilt, TiltAmount, 0.01f && TiltAmount != 0)) {
+		GetWorldTimerManager().ClearTimer(TiltTimerHandle);
+		CameraTiltOffset.Roll = TiltAmount;
+	}
+}
+
 void AAdrenCharacter::Jump(){
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		Super::Jump();
-		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
-		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
+		bCanDash = true; 
+		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
+			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
+			bCanJumpGrunt = false;
+		}
+		GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 		if (LeftOfPlayerHit.bBlockingHit) {
-			
-			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce , true);
-			GetWorldTimerManager().ClearTimer(WallRunningHandle);
+			PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce , true);
 		}
 		if (RightOfPlayerHit.bBlockingHit) {
-
-			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
-			GetWorldTimerManager().ClearTimer(WallRunningHandle);
+			PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
 		}
-		
-		FellOffWall();
+			FellOffWall();
 	}
 	else {
-		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
+		/*if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Crouching) {
 			StopCrouching();
-		}
+		}*/
 		Super::Jump();
-
-		if (!PlayerMovementComp->IsMovingOnGround()) {
-			
-			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
-			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
-			if (LeftOfPlayerHit.bBlockingHit) {
-				PlayerMovementComp->AddImpulse(GetActorRightVector() * -800.f, true);
-				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
-				}
-				
-				MovementState = EPlayerMovementState::WallRunning;
-				MovementStateDelegate.ExecuteIfBound();
-				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
-				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
-				
-			}
-			if (RightOfPlayerHit.bBlockingHit) {
-				PlayerMovementComp->AddImpulse(GetActorRightVector() * 800.f, true);
-				if (PlayerMovementComp->Velocity.SizeSquared2D() < MaxSpeed) {
-					PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
-				}
-				MovementState = EPlayerMovementState::WallRunning;
-				MovementStateDelegate.ExecuteIfBound();
-				PlayerMovementComp->AddImpulse(FVector::UpVector * 250.f, true);
-				GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
-			}
-			
+		if (JumpSounds.Num() > 0 && bCanJumpGrunt) {
+			UGameplayStatics::PlaySound2D(GetWorld(), JumpSounds[FMath::RandRange(0, JumpSounds.Num() - 1)], SFXVolume);
+			bCanJumpGrunt = false;
 		}
 	}
+	bStickOnce = false;
+	GetWorldTimerManager().ClearTimer(WallRunningHandle);
+	GetWorldTimerManager().SetTimer(StickToWallHandle, this, &AAdrenCharacter::ResetWallRun, WallRunCooldown, false);
+}
+
+void AAdrenCharacter::FinishedClambering() {
+	PlayerMovementComp->Velocity = FVector::ZeroVector;
+	PlayerMovementComp->AddImpulse(GetActorForwardVector() * 500.f, true);
+	MovementState = Running;
+	MovementStateDelegate.ExecuteIfBound();
 }
 
 void AAdrenCharacter::FellOffWall() {
 	MovementState = EPlayerMovementState::Running;
 	MovementStateDelegate.ExecuteIfBound();
+	ReturnToZero = true;
+
+	if (HeadTiltedRight) {
+		ClockwiseTilt();
+	}
+	else {
+		CounterClockwiseTilt();
+	}
+	StopCrouching();
+}
+
+
+void AAdrenCharacter::ResetWallRun() {
+	bStickOnce = true;
 }
 
 void AAdrenCharacter::UpdateMovementState()
@@ -145,23 +183,33 @@ void AAdrenCharacter::UpdateMovementState()
 	switch (MovementState)
 	{
 	case Running:
-		MaxPlayerSpeed = 950.f;
+		ReturnToZero = true;
+		if (HeadTiltedRight) {
+			//CameraTiltOffset.Roll += MaxHeadTilt;
+
+			ClockwiseTilt();
+		}
+		else {
+			//CameraTiltOffset.Roll -= MaxHeadTilt;
+			CounterClockwiseTilt();
+		}
+		MaxPlayerSpeed = 1100.f;
 		PlayerMovementComp->GroundFriction = 8.f;
-		PlayerMovementComp->GravityScale = 3.f;
+		PlayerMovementComp->GravityScale = 4.f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
 	case Crouching:
-		MaxPlayerSpeed = 300.f;
+		MaxPlayerSpeed = 500.f;
 		CrouchSpeedSquared = MaxPlayerSpeed * MaxPlayerSpeed + 5.f;
 		PlayerMovementComp->GroundFriction = 8.f;
-		PlayerMovementComp->GravityScale = 3.f;
+		PlayerMovementComp->GravityScale = 4.f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
 	case Sliding:
 		PlayerMovementComp->GroundFriction = 0.f;
-		PlayerMovementComp->GravityScale = 3.f;
+		PlayerMovementComp->GravityScale = 4.f;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		EnableKickHitbox();
 		break;
@@ -172,15 +220,21 @@ void AAdrenCharacter::UpdateMovementState()
 		EnableKickHitbox();
 		break;
 	case WallRunning:
+		MaxPlayerSpeed = 1500.f;
 		PlayerMovementComp->GravityScale = 0;
 		PlayerMovementComp->Velocity.Z = 0;
 		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		StopKicking();
 		break;
+	case Clambering:
+		PlayerMovementComp->GravityScale = 0;
+		PlayerMovementComp->Velocity = FVector::ZeroVector;
+		PlayerCapsule->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
+		StopKicking();
+		break;
 	default:
 		break;
 	}
-
 	PlayerMovementComp->MaxWalkSpeed = MaxPlayerSpeed;
 }
 
@@ -196,60 +250,116 @@ void AAdrenCharacter::Tick(float DeltaTime)
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround() || MovementState == EPlayerMovementState::WallRunning) {
+		bCanJumpGrunt = true;
 		bCanDash = true;
 	}
 
 	if (PlayerMovementComp->IsMovingOnGround()) {
-		if (EndDashOnce) {
+		bStickOnce = false;
+		GetWorldTimerManager().ClearTimer(WallRunningHandle);
+		GetWorldTimerManager().ClearTimer(StickToWallHandle);
+		if (EndDashOnce && MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
 			EndDashOnce = false;
 		}
 	}
 
-
-	if (!PlayerMovementComp->IsMovingOnGround()) {
+	//Clamber debug lines
+		//DrawDebugLine(GetWorld(), GetActorLocation(),(GetActorLocation()) + (GetActorForwardVector() * WallRunBlockingHitLength), FColor::Blue);
+		//DrawDebugLine(GetWorld(), GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2, (GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2) + (GetActorForwardVector() * WallRunBlockingHitLength), FColor::Red);
+	if (!PlayerMovementComp->IsMovingOnGround() && MovementState != EPlayerMovementState::WallRunning) {
 		EndDashOnce = true;
+		if (!bUsingJumpPad) {
+			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		}
+		if (LeftOfPlayerHit.bBlockingHit && bStickOnce) {
+			bStickOnce = false;
+			MovementState = EPlayerMovementState::WallRunning;
+			MovementStateDelegate.ExecuteIfBound();
+			PlayerMovementComp->AddImpulse(GetActorRightVector() * -WallRunSuctionImpulse, true);
+			ReturnToZero = false;
+			ClockwiseTilt();
+			HeadTiltedRight = false;
+			PlayerMovementComp->AddImpulse(FVector::UpVector * WallRunVerticalCurveForce, true);
+			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
+
+		}
+		if (RightOfPlayerHit.bBlockingHit && bStickOnce) {
+			bStickOnce = false;
+			MovementState = EPlayerMovementState::WallRunning;
+			MovementStateDelegate.ExecuteIfBound();
+			PlayerMovementComp->AddImpulse(GetActorRightVector() * WallRunSuctionImpulse, true);
+			ReturnToZero = false;
+			CounterClockwiseTilt();
+			HeadTiltedRight = true;
+			PlayerMovementComp->AddImpulse(FVector::UpVector * WallRunVerticalCurveForce, true);
+			GetWorldTimerManager().SetTimer(WallRunningHandle, this, &AAdrenCharacter::FellOffWall, WallRunningDuration, false);
+		}
+		GetWorld()->LineTraceSingleByChannel(FrontOfPlayerFootHit, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+		GetWorld()->LineTraceSingleByChannel(FrontOfPlayerHit, GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2.f, (GetActorLocation() + FVector::UpVector * CapsuleHalfHeight * 2.f) + GetActorForwardVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
+	
+
+		if (FrontOfPlayerFootHit.bBlockingHit && !FrontOfPlayerHit.bBlockingHit) {
+			if (Cast<IDamage>(FrontOfPlayerFootHit.GetActor())) return;
+			MovementState = EPlayerMovementState::Clambering;
+			MovementStateDelegate.ExecuteIfBound();
+			PlayerMovementComp->AddForce(FrontOfPlayerFootHit.ImpactNormal * -500000.f);
+			PlayerMovementComp->AddImpulse(FVector::UpVector * 1000.f, true);
+		}
+	}
+
+	if (MovementState == EPlayerMovementState::Clambering) {
+		if (!FrontOfPlayerFootHit.bBlockingHit) {
+			if (!GetWorldTimerManager().IsTimerActive(ClamberHandle)) {
+				GetWorldTimerManager().SetTimer(ClamberHandle, this, &AAdrenCharacter::FinishedClambering, 0.15f, false);
+			}
+		}
 	}
 	
 	if (MovementState == EPlayerMovementState::WallRunning) {
 		if (GetWorldTimerManager().IsTimerActive(WallRunningHandle)) {
 			if (GetWorldTimerManager().GetTimerElapsed(WallRunningHandle) <= WallRunningDuration / 1.5) {
-				PlayerMovementComp->GravityScale = 0.3;
+				PlayerMovementComp->GravityScale = 1.1;
 			}
 		}
 
 		if (LeftOfPlayerHit.bBlockingHit) {
-			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * -50.f, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(LeftOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * -WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			if (LeftOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddForce(LeftOfPlayerHit.Normal * -500000.f);
 			}
 			else{
 				GetWorldTimerManager().ClearTimer(WallRunningHandle);
-				PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
+				PlayerMovementComp->AddImpulse((LeftOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
+				bCanDash = true;
 				FellOffWall();
 			}
 		}
 		else if (RightOfPlayerHit.bBlockingHit) {
-			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * 25.f, GetActorLocation() + GetActorRightVector() * 50.f, ECollisionChannel::ECC_Camera);
+			GetWorld()->LineTraceSingleByChannel(RightOfPlayerHit, GetActorLocation() + FVector::UpVector * WallRunLineTraceHeight, GetActorLocation() + GetActorRightVector() * WallRunBlockingHitLength, ECollisionChannel::ECC_Camera);
 			if (RightOfPlayerHit.bBlockingHit) {
 				PlayerMovementComp->AddForce(RightOfPlayerHit.Normal * -500000.f);
 			}
 			else {
 				GetWorldTimerManager().ClearTimer(WallRunningHandle);
-				PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + GetActorForwardVector() + FVector::UpVector * 2.f) * WallJumpForce, true);
+				PlayerMovementComp->AddImpulse((RightOfPlayerHit.Normal + FVector::UpVector * WallJumpUpForce) * WallJumpForce, true);
+				bCanDash = true;
 				FellOffWall();
 			}
 		}
-		
-		
 	}
 
 	if (bSloMo) {
 		SloMo = FMath::Clamp(SloMo - DeltaTime, 0, SloMo);
 		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
+
 		if (SloMo == 0.f) {
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 			CustomTimeDilation = 1.0f;
+			if (HeadRushDepleted != nullptr) {
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushDepleted, GetActorLocation(), SFXVolume);
+			}
 			bCanGenerateSloMo = true;
 			bSloMo = false;
 			FPostProcessSettings Temp{};
@@ -261,9 +371,12 @@ void AAdrenCharacter::Tick(float DeltaTime)
 
 	if (bCanGenerateSloMo) {
 		//10 seconds
-		SloMo = FMath::Clamp(SloMo + DeltaTime / 5, 0, MaxSloMo);
+		SloMo = FMath::Clamp(SloMo + DeltaTime / 4, 0, MaxSloMo);
 		HUDWidget->SetSloMoBarPercent(ConvertSloMoToPercent(SloMo));
 		if (SloMo == MaxSloMo) {
+			if (HeadRushAvalible != nullptr) {
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushAvalible, GetActorLocation(), SFXVolume);
+			}
 			bCanGenerateSloMo = false;
 		}
 	}
@@ -280,13 +393,22 @@ void AAdrenCharacter::Tick(float DeltaTime)
 			StopSliding();
 		}
 	}
+
+}
+
+void AAdrenCharacter::PlayNearFinishedHeadRushSFX()
+{
+	if (HeadRushNearFinished != nullptr) {
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushNearFinished, GetActorLocation(), SFXVolume);
+	}
 }
 
 void AAdrenCharacter::StopSliding()
 {
+	
 	DecreaseFOV();
 	CamManager->StopAllCameraShakesFromSource(SlideCameraShake, false);
-	if (MovementState == EPlayerMovementState::Dashing) return;
+	if (MovementState == EPlayerMovementState::Dashing || MovementState == EPlayerMovementState::WallRunning) return;
 	StopCrouching();
 	
 }
@@ -345,7 +467,6 @@ void AAdrenCharacter::CalcFloorInfluence()
 	if (FirstCross.IsNearlyZero()) {
 		DirectionToAddForce = FVector::Zero();
 	}
-	
 	PlayerMovementComp->AddForce(DirectionToAddForce * DownhillForce);
 }
 
@@ -379,15 +500,22 @@ void AAdrenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	//GameMode->ResetComboCount();
+	if (Grunts.Num() > 0) {
+		UGameplayStatics::PlaySound2D(GetWorld(), Grunts[FMath::RandRange(0, Grunts.Num() - 1)], SFXVolume);
+	}
 	if (HitSound != nullptr) {
-		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 5.f, 0.5f);
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound, SFXVolume);
 	}
 	Health -= DamageDelta;
+	
 	float ClampedHealth = FMath::Clamp(Health, 0.f, MaxHealth);
 	HUDWidget->SetAdrenalineBarPercent(ConvertHealthToPercent(ClampedHealth));
 	if (ClampedHealth <= 0.f) {
+		ShouldDrainHealth = false;
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathGrunt, GetActorLocation(), SFXVolume);
+		FTimerHandle GruntSFXDelay{};
+		GetWorldTimerManager().SetTimer(GruntSFXDelay, this, &AAdrenCharacter::PlayDeathSFX, 0.02f, false);
 		PlayerDie();
-		
 	}
 	else {
 		if (PlayerCameraShake->CameraShake) {
@@ -396,14 +524,22 @@ void AAdrenCharacter::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDe
 	}
 }
 
+void AAdrenCharacter::PlayDeathSFX()
+{
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSFX, GetActorLocation(), SFXVolume);
+}
+
 void AAdrenCharacter::PlayerDie()
 {
 	PlayerState = EPlayerState::Dead;
+	VHSWidget->SetOwningPlayer(AdrenPlayerController);
+	VHSWidget->AddToPlayerScreen();
 	CamManager->StopAllCameraShakes(true);
 	DisableInput(AdrenPlayerController);
 	PlayerCam->SetFieldOfView(PreviousFOV);
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
+	GetWorldTimerManager().ClearTimer(TiltTimerHandle);
 	FTimerHandle DeathTimer{};
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
 	GetWorldTimerManager().SetTimer(DeathTimer, this, &AAdrenCharacter::PlayerDead, 0.1f, false);
@@ -431,12 +567,24 @@ void AAdrenCharacter::AirDash(const FInputActionInstance& Instance){
 		MovementState = EPlayerMovementState::Dashing;
 		MovementStateDelegate.ExecuteIfBound();
 		bCanDash = false;
+		if (AirDashGrunt != nullptr) {
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), AirDashGrunt, GetActorLocation(), SFXVolume);
+		}
+		if (HeadTiltedRight) {
+			ReturnToZero = true;
+			ClockwiseTilt();
+		}
+		else {
+			ReturnToZero = true;
+			CounterClockwiseTilt();
+		}
+
+		
 	}
 }
 
 void AAdrenCharacter::IncreaseFOV(){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 
 	GetWorldTimerManager().SetTimer(FOVTimerHandle, [this]() {
@@ -445,7 +593,6 @@ void AAdrenCharacter::IncreaseFOV(){
 }
 
 void AAdrenCharacter::DecreaseFOV() {
-	if (!RunStarted) return;
 	if (!GetWorld()) return;
 	GetWorldTimerManager().ClearTimer(FOVTimerHandle);
 
@@ -456,7 +603,6 @@ void AAdrenCharacter::DecreaseFOV() {
 
 void AAdrenCharacter::InterpFOV(float TargetFOV, float DeltaTime) {
 	if (!GetWorld()) return; 
-	if (!RunStarted) return;
 	float CurrentFOV = PlayerCam->FieldOfView;
 	float InterpedFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, FOVInterpSpeed);
 	PlayerCam->SetFieldOfView(InterpedFOV);
@@ -544,9 +690,13 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 	if (SloMo != MaxSloMo) return;
 	bSloMo = true;
 	bCanGenerateSloMo = false;
-	
-	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.5f);
-	CustomTimeDilation = 1.2f;
+	if (HeadRushUsage != nullptr) {
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadRushUsage, GetActorLocation(), SFXVolume);
+	}
+	FTimerHandle LaughSFXDelay{};
+	GetWorldTimerManager().SetTimer(LaughSFXDelay, this, &AAdrenCharacter::PlayNearFinishedHeadRushSFX, 1.7f, false);
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), SloMoSpeed);
+	CustomTimeDilation = PlayerSpeedInSloMo;
 	FPostProcessSettings Temp{};
 	Temp.bOverride_WhiteTemp = true;
 	Temp.WhiteTemp = 4000.f;
@@ -556,7 +706,7 @@ void AAdrenCharacter::ActivateSloMo(const FInputActionInstance& Instance){
 
 void AAdrenCharacter::Kick(const FInputActionInstance& Instance) {
 	if (GetWorldTimerManager().IsTimerActive(KickTimerHandle)) return;
-	if (MovementState == EPlayerMovementState::WallRunning) return;
+	/*if (MovementState == EPlayerMovementState::WallRunning) return;*/
 	EnableKickHitbox();
 	
 	//GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, "Kicking", false);
@@ -600,32 +750,37 @@ void AAdrenCharacter::OnKickHitboxBeginOverlap(UPrimitiveComponent* OverlappedCo
 		}
 
 		if (KickHitSound != nullptr) {
-			UGameplayStatics::PlaySound2D(GetWorld(), KickHitSound);
+			UGameplayStatics::PlaySound2D(GetWorld(), KickHitSound, SFXVolume);
 		}
 
 		if (MovementState == EPlayerMovementState::Sliding || MovementState == EPlayerMovementState::Dashing) {
-			HitActor->DamageTaken(true, SlideKickDamage, this, FVector::ZeroVector, NAME_None, false, true);
+			HitActor->DamageTaken(true, SlideKickDamage, this, FVector::ZeroVector, NAME_None, false, true, true);
 		}
 		else {
 			HitActor->DamageTaken(true, KickDamage, this, FVector::ZeroVector, NAME_None, false, false, true);
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
-			FTimerHandle HitStun{};
-			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			if (!bSloMo) {
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+				FTimerHandle HitStun{};
+				GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			}
+			
 		}
 		if (MovementState == EPlayerMovementState::Dashing) {
 			EndDash();
 			PlayerMovementComp->Velocity = GetVelocity() * 0.5f; 
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
-			FTimerHandle HitStun{};
-			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
-			
-
+			if (!bSloMo) {
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+				FTimerHandle HitStun{};
+				GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, DashHitStunDuration, false);
+			}
 		}
 		if (MovementState == EPlayerMovementState::Sliding) {
 			PlayerMovementComp->Velocity = GetVelocity() * 0.9f;
-			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
-			FTimerHandle HitStun{};
-			GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, SlideHitStunDuration, false);
+			if (!bSloMo) {
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+				FTimerHandle HitStun{};
+				GetWorldTimerManager().SetTimer(HitStun, this, &AAdrenCharacter::HitStun, SlideHitStunDuration, false);
+			}
 		}
 		KickOnce = false;
 		FTimerHandle CanKickAgainHandle{};
@@ -666,6 +821,7 @@ void AAdrenCharacter::DrainLife(bool ShouldDrainLife, float DeltaTime){
 }
 
 void AAdrenCharacter::GainLife(float HealthRecovery){
+	GEngine->AddOnScreenDebugMessage(12, 1.f, FColor::Black, FString::Printf(TEXT("%f"), HealthRecovery));
 	Health = FMath::Clamp(Health + HealthRecovery, 0, MaxHealth);
 	if (bCanGenerateSloMo) {
 		SloMo = FMath::Clamp(SloMo + 0.1f, 0, MaxSloMo);
@@ -679,7 +835,6 @@ void AAdrenCharacter::WantsToCrouch(const FInputActionInstance& Instance)
 	if (MovementState == EPlayerMovementState::WallRunning || MovementState == EPlayerMovementState::Dashing) return;
 	if (PlayerCapsule->GetScaledCapsuleHalfHeight() == CapsuleHalfHeight) {
 		BeginCrouch();
-		
 	}
 	if (MovementState == EPlayerMovementState::Crouching && GetVelocity().SquaredLength() > CrouchSpeedSquared && PlayerMovementComp->IsMovingOnGround()) {
 		StartSlide();
@@ -696,7 +851,6 @@ void AAdrenCharacter::BeginCrouch()
 
 void AAdrenCharacter::InterpCameraStandToCrouch(){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
 
 	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
@@ -711,7 +865,6 @@ void AAdrenCharacter::InterpCameraStandToCrouch(){
 
 void AAdrenCharacter::InterpCameraCrouchToStand(){
 	if (!GetWorld()) return;
-	if (!RunStarted) return;
 	GetWorldTimerManager().ClearTimer(CrouchStandTimer);
 
 	FVector CurrentCameraLocation = PlayerCam->GetRelativeLocation();
@@ -724,6 +877,7 @@ void AAdrenCharacter::InterpCameraCrouchToStand(){
 }
 
 void AAdrenCharacter::SmoothCrouchStandInterp(FVector Target, float DeltaTime){
+	if (!GetWorld()) return;
 	FVector CurrentLocation = PlayerCam->GetRelativeLocation();
 	//FVector TargetLocation = FMath::VInterpTo(CurrentLocation, Target, DeltaTime, 5.f);
 	FVectorSpringState SpringState{};
@@ -746,13 +900,13 @@ void AAdrenCharacter::StopCrouching(){
 	if (EquippedWeapon != nullptr) {
 		IgnoreSelf.AddUnique(EquippedWeapon);
 	}
-	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + FVector::UpVector * CrouchedCapsuleHalfHeight, GetActorLocation() + FVector::UpVector * (CapsuleHalfHeight + 20.f), 10.f, ETraceTypeQuery::TraceTypeQuery1, false, IgnoreSelf, EDrawDebugTrace::ForDuration, CheckAboveHead, true);
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + FVector::UpVector * CapsuleHalfHeight, GetActorLocation() + FVector::UpVector * (CapsuleHalfHeight + 50.f), 5.f, ETraceTypeQuery::TraceTypeQuery1, false, IgnoreSelf, EDrawDebugTrace::ForDuration, CheckAboveHead, true);
 	if (!CheckAboveHead.bBlockingHit) {
 		MovementState = EPlayerMovementState::Running;
 		MovementStateDelegate.ExecuteIfBound();
 		PlayerCapsule->SetCapsuleHalfHeight(CapsuleHalfHeight);
 	}
-	if (CheckAboveHead.bBlockingHit) {
+	if (CheckAboveHead.bBlockingHit && PlayerMovementComp->IsMovingOnGround()) {
 		GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Magenta, CheckAboveHead.GetActor()->GetName());
 		MovementState = EPlayerMovementState::Sliding;
 		MovementStateDelegate.ExecuteIfBound();
@@ -762,12 +916,30 @@ void AAdrenCharacter::StopCrouching(){
 }
 
 void AAdrenCharacter::Move(const FInputActionInstance& Instance) {
-	if (MovementState == EPlayerMovementState::WallRunning) return;
 	FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
+	/*if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X > 0 && LeftOfPlayerHit.bBlockingHit) {
+		bCanDash = true;
+		FellOffWall();
+	}
+	if (MovementState == EPlayerMovementState::WallRunning && AxisValue2D.X < 0 && RightOfPlayerHit.bBlockingHit) {
+		bCanDash = true;
+		FellOffWall();
+	}*/
 	AddMovementInput(GetActorRightVector(), AxisValue2D.X);
 	//Dont take any forward or backward input when sliding.
 	if (MovementState == EPlayerMovementState::Sliding) return;
-	AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
+	if (MovementState == EPlayerMovementState::WallRunning) {
+		if (AxisValue2D.Y > 0) {
+			AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
+		}
+		else {
+			AddMovementInput(GetActorForwardVector(), AxisValue2D.Y * 0.1f);
+		}
+	}
+	else {
+		AddMovementInput(GetActorForwardVector(), AxisValue2D.Y);
+	}
+	
 	
 }
 

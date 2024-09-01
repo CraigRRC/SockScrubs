@@ -34,6 +34,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UProgressBar* SloMoBar{};
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UImage* Crosshair{};
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	class UImage* OutOfAmmo1{};
@@ -52,6 +54,12 @@ public:
 	void SetAmmoCounter(uint8 CurrentAmmo);
 
 	void SetAmmoCounterVisibility(ESlateVisibility V);
+
+	void SetHealthBarVisibility(ESlateVisibility V);
+
+	void SetCrosshairVisibility(ESlateVisibility V);
+
+	void SetSloMoBarVisibility(ESlateVisibility V);
 
 	void SetAdrenalineBarPercent(float MaxHealth);
 

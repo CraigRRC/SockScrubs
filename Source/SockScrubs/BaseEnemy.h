@@ -54,12 +54,18 @@ protected:
 
 	virtual void Destroyed() override;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bDiedToKillZ{ false };
+
 	EnemyStateDelegate EnemyStateDelegate{};
 
 	EnemyWeaponStateDelegate EnemyWeaponStateDelegate{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	class UMaterialInterface* BloodSplat{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	FVector BloodSplatSize{ 35, 200, 200 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyAttributes")
 	class UPointLightComponent* IntentionHint{};
@@ -71,10 +77,16 @@ protected:
 	USoundBase* HeadshotTing{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	USoundBase* DeathSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	USoundBase* GunShot{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	TArray<USoundBase*> DeathSounds{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	float SFXVolume{ 1.0f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
 	USoundAttenuation* HeadshotAttenuation{};

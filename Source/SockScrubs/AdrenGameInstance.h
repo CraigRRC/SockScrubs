@@ -17,10 +17,13 @@ class SOCKSCRUBS_API UAdrenGameInstance : public UGameInstance
 protected:
 	virtual void Init() override;
 
-	UFUNCTION()
-	void RetrieveLoadedData(const FString& SlotName, const int32 UserIndex, class USaveGame* LoadedGameData);
+	
 
 
 public:
 	float LoadedSensitivity{};
+
+	UFUNCTION()
+	void RetrieveLoadedData(const FString& SlotName, const int32 UserIndex, class USaveGame* LoadedGameData);
+
 };

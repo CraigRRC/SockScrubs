@@ -8,7 +8,6 @@
 #include "Damage.h"
 #include "AdrenCharacter.generated.h"
 
-
 DECLARE_DELEGATE(MovementDelegate);
 DECLARE_DELEGATE(StartRunDelegate);
 DECLARE_DELEGATE(PauseGameDelegate);
@@ -26,6 +25,7 @@ enum EPlayerMovementState : uint8 {
 	Sliding UMETA(DisplayName = "Sliding"),
 	Dashing UMETA(DisplayName = "Dashing"),
 	WallRunning UMETA(DisplayName = "WallRunning"),
+	Clambering UMETA(DisplayName = "Clambering"),
 };
 
 UENUM(Blueprintable)
@@ -49,12 +49,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void PlayNearFinishedHeadRushSFX();
+
 	void StopSliding();
 
 	bool RunStarted{ false };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	class UPlayerHUDWidget* HUDWidget{};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	class UVHS_Anim* VHSWidget{};
 
 	UFUNCTION()
 	virtual void PickupWeapon(AActor* Weapon, WeaponType WeaponType) override;
@@ -64,6 +69,8 @@ public:
 
 	UFUNCTION()
 	virtual void DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) override;
+
+	void PlayDeathSFX();
 
 	void PlayerDie();
 
@@ -75,20 +82,73 @@ public:
 
 	FTimerHandle WallRunningHandle{};
 
+	FTimerHandle ClamberHandle{};
+
+	void FinishedClambering();
+
 	float WallRunningDuration{ 2.f };
-	
+
 	void FellOffWall();
 
 	float KickDuration{ 0.45f };
 
-	float WallJumpForce{ 600.f };
+	float WallJumpForce{ 1200.f };
 
+	float WallJumpUpForce{ 0.8f };
+
+	float WallRunVerticalCurveForce{ 650.f };
+
+	float WallRunLineTraceHeight{ 30.f };
+
+	float WallRunImpulse{ 1500.f };
+
+	float WallRunSuctionImpulse{ 800.f };
+
+	float WallRunBlockingHitLength{ 100.f };
+
+	bool bStickOnce{ true };
+
+	void ResetWallRun();
+
+	float WallRunCooldown{ 0.3f };
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bUsingJumpPad{ false };
+
+	FTimerHandle StickToWallHandle{};
 
 protected:
 	//Overrides
 	virtual void BeginPlay() override;
 
 	virtual void Destroyed() override;
+
+	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult) override;
+
+	FRotator CameraTiltOffset{ FRotator::ZeroRotator };
+
+	float MaxHeadTilt{ 15.f };
+
+	bool HeadTiltedRight{ false };
+
+	void ClockwiseTilt();
+
+	void CounterClockwiseTilt();
+
+	void InterpTilt(float TiltAmount, float DeltaTime);
+
+	bool ReturnToZero{ false };
+
+	float SloMoSpeed{ 0.3f };
+
+	float PlayerSpeedInSloMo{ 1.3f };
+
+	UPROPERTY(BlueprintReadWrite)
+	FTimerHandle TiltTimerHandle{};
+
+	float TiltInterpSpeed{ 10.f };
+
+	float TiltIncrement{1};
 
 	virtual void Jump() override;
 
@@ -111,6 +171,9 @@ protected:
 
 	FHitResult LeftOfPlayerHit{};
 	FHitResult RightOfPlayerHit{};
+
+	FHitResult FrontOfPlayerFootHit{};
+	FHitResult FrontOfPlayerHit{};
 
 	UPROPERTY(BlueprintReadOnly, Category = Anims)
 	EPlayerWeaponState PlayerWeaponStatus{ EPlayerWeaponState::Unarmed };
@@ -232,7 +295,7 @@ protected:
 
 	float MaxSpeed{ 5290000.f };
 
-	float SlideImpulseForce{ 350.f };
+	float SlideImpulseForce{ 400.f };
 
 	float DashImpulseForce{ 250000.f };
 
@@ -256,11 +319,51 @@ protected:
 	class UCameraShakeSourceComponent* PlayerCameraShake{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* BeginSlide{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* DuringSlide{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* EndSlide{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* HitSound{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HeadRushAvalible{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HeadRushDepleted{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* AirDashGrunt{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HeadRushUsage{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* HeadRushNearFinished{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* KickHitSound{};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	TArray<USoundBase*> JumpSounds{};
+
+	bool bCanJumpGrunt{ true };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	TArray<USoundBase*> Grunts{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	float SFXVolume{ 1.0f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* DeathGrunt{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	USoundBase* DeathSFX{};
 
 	UFUNCTION()
 	void ShootFullAuto(const struct FInputActionInstance& Instance);
@@ -344,7 +447,7 @@ protected:
 	float SloMo{ 0.f };
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAttributes)
-	float MaxSloMo{ 2.f };
+	float MaxSloMo{ 2.5f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerAttributes)
 	class UCameraComponent* PlayerCam{};

@@ -92,8 +92,12 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 
 	if (Tripped) {
 		EnemyMesh->SetSimulatePhysics(true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("RightLeg"), true);
-		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, FName("LeftLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f + DamageDealer->GetVelocity(), FName("RightLeg"), true);
+		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f + DamageDealer->GetVelocity(), FName("LeftLeg"), true);
+	}
+	//Temp
+	if (bDiedToKillZ) {
+		EnemyEliminatedDelegate.Execute(this, 5.f);
 	}
 	
 	float ClampedHealth = FMath::Clamp(Health, 0, MaxHealth);
@@ -104,35 +108,36 @@ void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer,
 			FHitResult BloodSplatterHit{};
 			GetWorld()->LineTraceSingleByChannel(BloodSplatterHit, GetActorLocation() + FVector::UpVector * 180.f, (GetActorLocation() + FVector::UpVector * 180.f) + GetActorForwardVector() * -1000.f, ECollisionChannel::ECC_Visibility);
 			if (BloodSplatterHit.bBlockingHit) {
-				UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BloodSplat, FVector(35, 200, 200), BloodSplatterHit.ImpactPoint, BloodSplatterHit.ImpactNormal.Rotation(), 10.f);
+				UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BloodSplat, BloodSplatSize, BloodSplatterHit.ImpactPoint, FRotator(BloodSplatterHit.ImpactNormal.Rotation().Pitch, BloodSplatterHit.ImpactNormal.Rotation().Yaw, FMath::RandRange(0, 360)), 10.f);
 			}
 		}
 		
 		if (!Headshot) {
-			if (HeadshotTing) {
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 0.5f);
+			if (DeathSound) {
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), SFXVolume, 1.0f);
 			}
 			if (Kicked) {
 				EnemyMesh->SetSimulatePhysics(true);
-				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f, FName("Spine"), true);
-				EnemyEliminatedDelegate.Execute(this, 1.f);
+				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 40000.f + DamageDealer->GetVelocity(), FName("Spine"), true);
+				EnemyEliminatedDelegate.Execute(this, 3.f);
 			}
 			else {
-				EnemyMesh->SetSimulatePhysics(true);
-				EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
-				EnemyEliminatedDelegate.Execute(this, 1.f);
+				//Temp
+				if (!bDiedToKillZ) {
+					EnemyMesh->SetSimulatePhysics(true);
+					EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 5000.f, BoneName, true);
+					EnemyEliminatedDelegate.Execute(this, 1.f);
+				}
 			}
 		}
 	}
 	if (Headshot) {
-		
 		EnemyEliminatedDelegate.Execute(this, 2.f);
 		EnemyMesh->SetSimulatePhysics(true);
 		EnemyMesh->AddImpulse(DamageDealer->GetActorForwardVector() * 10000.f, FName("Head"), true);
 		if (HeadshotTing && HeadshotAttenuation) {
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), 1.0f, 1.0f, 0.0f, HeadshotAttenuation);
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HeadshotTing, GetActorLocation(), SFXVolume, 1.0f);
 		}
-		
 	}
 }
 
@@ -142,12 +147,10 @@ void ABaseEnemy::SwitchState(){
 	{
 	case EEnemyState::Ready:
 		HealthWidgetComponent->SetVisibility(false);
-		HealthWidgetComponent->SetComponentTickEnabled(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Activated:
 		HealthWidgetComponent->SetVisibility(false);
-		HealthWidgetComponent->SetComponentTickEnabled(false);
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		break;
 	case EEnemyState::Combat:
@@ -185,8 +188,10 @@ void ABaseEnemy::SwitchState(){
 		EnemyMesh->SetNotifyRigidBodyCollision(false);
 		EnemyMesh->PutAllRigidBodiesToSleep();
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
 		EnemyMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
 		HeadHitbox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		//This is for the memes.
 		//UGameplayStatics::PlaySound2D(GetWorld(), DeathSounds[FMath::RandRange(0, DeathSounds.Num() - 1)], 10.0f, FMath::FRandRange(0.8, 1));
@@ -199,9 +204,7 @@ void ABaseEnemy::SwitchState(){
 		if (!GetWorldTimerManager().IsTimerActive(DeathTimer)) {
 			GetWorldTimerManager().SetTimer(DeathTimer, this, &ABaseEnemy::CleanUp, 15.f, false);
 		}
-		
 		break;
-		
 	default:
 		break;
 	}
@@ -254,9 +257,18 @@ void ABaseEnemy::LookAtPlayer(){
 		if (hit.bBlockingHit) {
 			if (Cast<AAdrenCharacter>(hit.GetActor())) {
 				SeenPlayer = Cast<AAdrenCharacter>(hit.GetActor());
+				if (EnemyWeaponState != EEnemyWeaponState::Disarmed) {
+					EnemyState = EEnemyState::Combat;
+					EnemyStateDelegate.ExecuteIfBound();
+				}
 			}
 			else {
 				SeenPlayer = nullptr;
+				EnemyState = EEnemyState::Activated;
+				EnemyStateDelegate.ExecuteIfBound();
+				if (GetWorldTimerManager().IsTimerActive(FireHandle)) {
+					GetWorldTimerManager().ClearTimer(FireHandle);
+				}
 			}
 		}
 	}
@@ -349,10 +361,7 @@ void ABaseEnemy::Tick(float DeltaTime)
 		break;
 	}
 
-	if (SeenPlayer != nullptr && EnemyWeaponState != EEnemyWeaponState::Disarmed) {
-		EnemyState = EEnemyState::Combat;
-		EnemyStateDelegate.ExecuteIfBound();
-	}
+	
 }
 
 // Called to bind functionality to input

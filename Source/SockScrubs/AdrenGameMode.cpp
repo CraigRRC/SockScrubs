@@ -10,6 +10,7 @@
 #include "PauseWidget.h"
 #include "SettingsWidget.h"
 #include "AdrenGameInstance.h"
+#include "AdrenSaveGame.h"
 
 AAdrenGameMode::AAdrenGameMode(){
 	PrimaryActorTick.bCanEverTick = true;
@@ -18,9 +19,14 @@ AAdrenGameMode::AAdrenGameMode(){
 
 void AAdrenGameMode::BeginPlay(){
 	Super::BeginPlay();
-	if (BeginRunWidget != nullptr && GetWorld() != nullptr) {
+
+	if (BeginRunWidget != nullptr && GetWorld() != nullptr && bLevelIsRun) {
 		BeginRunWidget->SetOwningPlayer(GetWorld()->GetFirstPlayerController());
 	}
+	FAsyncLoadGameFromSlotDelegate LoadedDelegate{};
+	LoadedDelegate.BindUObject(this, &AAdrenGameMode::RetrieveLoadedData);
+	UGameplayStatics::AsyncLoadGameFromSlot("SaveSlot1", 0, LoadedDelegate);
+	
 
 }
 
@@ -67,10 +73,16 @@ void AAdrenGameMode::PassSensitivityToPlayer(float Value){
 }
 
 void AAdrenGameMode::StartRun() {
-	BeginRunWidget->RemoveFromParent();
-	GetWorld()->GetFirstPlayerController()->SetPause(false);
-	PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
-	bRunStarted = true;
+	if (bLevelIsRun) {
+		BeginRunWidget->RemoveFromParent();
+		GetWorld()->GetFirstPlayerController()->SetPause(false);
+		PlayerHUDWidget->SetRunTimerVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetHealthBarVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetSloMoBarVisibility(ESlateVisibility::Visible);
+		PlayerHUDWidget->SetCrosshairVisibility(ESlateVisibility::Visible);
+		bRunStarted = true;
+	}
+	
 }
 
 void AAdrenGameMode::PauseGame(){
@@ -114,15 +126,14 @@ void AAdrenGameMode::Tick(float DeltaTime){
 		}
 		BindStartRunDelegate();
 		Player->PauseGameDelegate.BindUObject(this, &AAdrenGameMode::PauseGame);
-		if (UAdrenGameInstance* GameInstance = Cast<UAdrenGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))) {
-			if (GameInstance->LoadedSensitivity > 0) {
-				Player->SetPlayerSensitivity(GameInstance->LoadedSensitivity);
-			}
-			else {
-				Player->SetPlayerSensitivity(1.0f);
-			}
-		}
 		
+		if (LoadedSensitivity > 0) {
+			Player->SetPlayerSensitivity(LoadedSensitivity);
+		}
+		else {
+			Player->SetPlayerSensitivity(1.0f);
+		}
+
 		DoOnce = false;
 	}
 
@@ -144,12 +155,24 @@ void AAdrenGameMode::CheckForPlayer()
 
 void AAdrenGameMode::BindStartRunDelegate()
 {
-	Player->StartRunDelegate.BindUObject(this, &AAdrenGameMode::StartRun);
+	if (bLevelIsRun) {
+		Player->StartRunDelegate.BindUObject(this, &AAdrenGameMode::StartRun);
+	}
 }
+	
 
 void AAdrenGameMode::AddStartRunWidgetToScreen()
 {
-	BeginRunWidget->AddToPlayerScreen();
-	GetWorld()->GetFirstPlayerController()->Pause();
+	if (bLevelIsRun) {
+		BeginRunWidget->AddToPlayerScreen();
+		GetWorld()->GetFirstPlayerController()->Pause();
+	}
+}
+
+void AAdrenGameMode::RetrieveLoadedData(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData) {
+	if (UAdrenSaveGame* AdrenSave = Cast<UAdrenSaveGame>(LoadedGameData)) {
+		LoadedSensitivity = AdrenSave->PlayerSensitivity;
+		GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Blue, FString::SanitizeFloat(LoadedSensitivity));
+	}
 }
 

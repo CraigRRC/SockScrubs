@@ -13,6 +13,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
+#include "Components/DecalComponent.h"
 
 
 
@@ -53,10 +54,8 @@ void ABaseWeapon::SetLifeTimer()
 
 void ABaseWeapon::PlayPickupSound(){
 	if (!PickupSound) return;
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation(), SFXVolume);
 }
-
-
 
 void ABaseWeapon::OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult){
 	IDamage* HitActor = Cast<IDamage>(OtherActor);
@@ -90,14 +89,14 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 	FHitResult Hit{};
 	//GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera);
 	GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECollisionChannel::ECC_Camera, FCollisionShape::MakeSphere(BulletRadius));
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), GunSound, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), GunSound, GetActorLocation(), SFXVolume);
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 0.5f);
 	if (Hit.bBlockingHit) {
 		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, BulletRadius, 10, FColor::Blue);
 		IDamage* HitActorHasInterface = Cast<IDamage>(Hit.GetActor());
 		if (HitActorHasInterface) {
 			if (HitSound != nullptr && GetWorld() != nullptr) {
-				UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 2.f);
+				UGameplayStatics::PlaySound2D(GetWorld(), HitSound, SFXVolume);
 			}
 			USphereComponent* Head = Cast<USphereComponent>(Hit.GetComponent());
 			if (Head) {
@@ -118,11 +117,10 @@ void ABaseWeapon::FireAsLineTrace(FVector Start, FVector End){
 			
 		}
 		else {
-			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletImpact, FVector(4, 16, 16), Hit.ImpactPoint, Hit.ImpactNormal.Rotation(), 10.f);
+			UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletImpact, BulletHoleSize, Hit.ImpactPoint, FRotator(Hit.ImpactPoint.Rotation().Pitch, Hit.ImpactPoint.Rotation().Yaw, FMath::RandRange(0, 360)), 10.f);
 			if (BulletSparks != nullptr && GetWorld() != nullptr) {
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletSparks, Hit.ImpactPoint, Hit.ImpactNormal.ToOrientationRotator());
 			}
-			
 		}
 	}
 

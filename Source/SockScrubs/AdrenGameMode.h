@@ -29,8 +29,13 @@ public:
 	
 	OnSensUpdatedDelegate OnSensUpdatedDelegate{};
 
+	class UAdrenSaveGame* LoadedSaveGame{};
+
 	UPROPERTY(BlueprintReadWrite)
 	bool CollectEnemies{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Run)
+	bool bLevelIsRun{ true };
 
 	UFUNCTION()
 	void StartRun();
@@ -66,6 +71,11 @@ protected:
 
 	virtual void Destroyed() override;
 
+	float LoadedSensitivity{};
+
+	UFUNCTION()
+	void RetrieveLoadedData(const FString& SlotName, const int32 UserIndex, class USaveGame* LoadedGameData);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
 	class UBeginRunWidget* BeginRunWidget{};
 
@@ -97,10 +107,10 @@ protected:
 	uint8 HighestCombo{};
 
 	UPROPERTY(BlueprintReadWrite, Category = Stats)
-	uint8 NumEnemiesInLevel{36};
+	uint8 NumEnemiesInLevel{};
 
-	UPROPERTY(BlueprintReadOnly, Category = Stats)
-	uint8 EnemiesRemainingInLevel{NumEnemiesInLevel}; 
+	UPROPERTY(BlueprintReadWrite, Category = Stats)
+	uint8 EnemiesRemainingInLevel{}; 
 
 	UPROPERTY(BlueprintReadOnly, Category = Stats)
 	bool UltraCombo{ false };
@@ -117,4 +127,6 @@ protected:
 	bool bRunStarted{ false };
 
 	
+	public:
+		FORCEINLINE float GetLoadedSensitivity() { return LoadedSensitivity; }
 };

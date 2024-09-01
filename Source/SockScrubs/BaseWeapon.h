@@ -79,6 +79,9 @@ protected:
 	TSubclassOf<class ABaseProjectile> ProjectileToSpawn{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
+	float SFXVolume{ 1.0f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
 	USoundBase* GunSound{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sounds)
@@ -116,8 +119,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
 	class USceneComponent* MuzzleFlashLocation{};
-	
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = VFX)
+	FVector BulletHoleSize{ 4, 16, 16 };
+	
 	bool DoOnce{ true };
 
 	void ResetDoOnce();
