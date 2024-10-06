@@ -62,6 +62,9 @@ void ABaseEnemy::BeginPlay()
 	if (HealthWidget) {
 		HealthWidget->SetHealthPercent(ConvertHealthToPercent());
 	}
+	if (EnemyMesh != nullptr) {
+		EnemyMesh->SetComponentTickEnabled(false);
+	}
 }
 
 void ABaseEnemy::Destroyed(){
@@ -80,6 +83,7 @@ float ABaseEnemy::ConvertHealthToPercent(){
 
 void ABaseEnemy::DamageTaken(bool Stun, float DamageDelta, AActor* DamageDealer, FVector ImpactPoint, FName BoneName, bool Headshot, bool Tripped, bool Kicked) {
 	if (EnemyState == EEnemyState::Dead) return;
+	
 	if (Stun) {
 		EnemyState = EEnemyState::Stunned;
 		EnemyStateDelegate.ExecuteIfBound();
@@ -160,6 +164,7 @@ void ABaseEnemy::SwitchState(){
 		HealthWidgetComponent->SetComponentTickEnabled(true);
 		HealthWidgetComponent->SetVisibility(true);
 		EnemyMesh->SetNotifyRigidBodyCollision(true);
+		EnemyMesh->SetComponentTickEnabled(true);
 		break;
 	case EEnemyState::Stunned:
 		bIsStunned = true;
