@@ -58,9 +58,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
-	class USkeletalMeshComponent* TempGunMesh{};
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
 	class UStaticMeshComponent* GunMesh{};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GunAttributes)
@@ -131,7 +128,7 @@ protected:
 	void OnStunColliderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:	
-	FORCEINLINE class USkeletalMeshComponent* GetGunMesh() { return TempGunMesh; }
+	FORCEINLINE class UStaticMeshComponent* GetGunMesh() { return GunMesh; }
 	FORCEINLINE class USphereComponent* GetStunCollider() { return StunCollider; }
 	FORCEINLINE class USphereComponent* GetPickupCollider() { return PickupCollider; }
 	FORCEINLINE uint8 GetClipSize() { return ClipSize; }
